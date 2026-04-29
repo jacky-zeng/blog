@@ -6,16 +6,20 @@ namespace App\Controller;
 
 use App\Helper\ResponseHelper;
 use App\Model\Article;
-use App\Model\Category;
 use App\Model\Setting;
 use App\Model\Tag;
+use Hyperf\Di\Annotation\Inject;
 use Hyperf\HttpServer\Annotation\Controller;
 use Hyperf\HttpServer\Annotation\GetMapping;
+use Hyperf\HttpServer\Contract\RequestInterface;
 use Psr\Http\Message\ResponseInterface;
 
 #[Controller]
 class HomeController
 {
+    #[Inject]
+    protected RequestInterface $request;
+
     #[GetMapping(path: '/api/site/info')]
     public function info(): ResponseInterface
     {
@@ -49,9 +53,9 @@ class HomeController
     #[GetMapping(path: '/api/search')]
     public function search(): ResponseInterface
     {
-        $keyword = (string) request()->input('keyword', '');
-        $page = (int) request()->input('page', 1);
-        $pageSize = (int) request()->input('page_size', 10);
+        $keyword = (string) $this->request->input('keyword', '');
+        $page = (int) $this->request->input('page', 1);
+        $pageSize = (int) $this->request->input('page_size', 10);
 
         if (empty($keyword)) {
             return ResponseHelper::error('请输入搜索关键词');

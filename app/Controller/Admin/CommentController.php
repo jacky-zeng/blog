@@ -6,11 +6,13 @@ namespace App\Controller\Admin;
 
 use App\Helper\ResponseHelper;
 use App\Model\Comment;
+use Hyperf\Di\Annotation\Inject;
 use Hyperf\HttpServer\Annotation\Controller;
 use Hyperf\HttpServer\Annotation\DeleteMapping;
 use Hyperf\HttpServer\Annotation\GetMapping;
 use Hyperf\HttpServer\Annotation\PutMapping;
 use Hyperf\HttpServer\Annotation\Middleware;
+use Hyperf\HttpServer\Contract\RequestInterface;
 use App\Middleware\AuthMiddleware;
 use Psr\Http\Message\ResponseInterface;
 
@@ -18,13 +20,16 @@ use Psr\Http\Message\ResponseInterface;
 #[Middleware(AuthMiddleware::class)]
 class CommentController
 {
+    #[Inject]
+    protected RequestInterface $request;
+
     #[GetMapping(path: '/api/admin/comments')]
     public function index(): ResponseInterface
     {
-        $page = (int) request()->input('page', 1);
-        $pageSize = (int) request()->input('page_size', 10);
-        $keyword = (string) request()->input('keyword', '');
-        $status = request()->input('status');
+        $page = (int) $this->request->input('page', 1);
+        $pageSize = (int) $this->request->input('page_size', 10);
+        $keyword = (string) $this->request->input('keyword', '');
+        $status = $this->request->input('status');
 
         $query = Comment::with(['article', 'parent']);
 
@@ -54,7 +59,7 @@ class CommentController
             return ResponseHelper::error('评论不存在', 404);
         }
 
-        $data = request()->all();
+        $data = $this->request->all();
 
         if (isset($data['status'])) {
             $comment->status = (int) $data['status'];

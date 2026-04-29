@@ -2,14 +2,14 @@
 
 declare(strict_types=1);
 
-namespace Hyperf\Database\Seeders;
+namespace App\Seeder;
 
 use App\Model\Setting;
-use Hyperf\Database\Seeder\Seeder;
+use Hyperf\Database\Seeders\Seeder;
 
 class SettingSeeder extends Seeder
 {
-    public function run()
+    public function run(): void
     {
         Setting::query()->truncate();
 

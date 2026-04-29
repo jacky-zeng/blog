@@ -7,12 +7,14 @@ namespace App\Controller\Admin;
 use App\Helper\ResponseHelper;
 use App\Model\Article;
 use App\Model\Tag;
+use Hyperf\Di\Annotation\Inject;
 use Hyperf\HttpServer\Annotation\Controller;
 use Hyperf\HttpServer\Annotation\DeleteMapping;
 use Hyperf\HttpServer\Annotation\GetMapping;
 use Hyperf\HttpServer\Annotation\PostMapping;
 use Hyperf\HttpServer\Annotation\PutMapping;
 use Hyperf\HttpServer\Annotation\Middleware;
+use Hyperf\HttpServer\Contract\RequestInterface;
 use App\Middleware\AuthMiddleware;
 use Psr\Http\Message\ResponseInterface;
 
@@ -20,14 +22,17 @@ use Psr\Http\Message\ResponseInterface;
 #[Middleware(AuthMiddleware::class)]
 class ArticleController
 {
+    #[Inject]
+    protected RequestInterface $request;
+
     #[GetMapping(path: '/api/admin/articles')]
     public function index(): ResponseInterface
     {
-        $page = (int) request()->input('page', 1);
-        $pageSize = (int) request()->input('page_size', 10);
-        $keyword = (string) request()->input('keyword', '');
-        $categoryId = request()->input('category_id');
-        $status = request()->input('status');
+        $page = (int) $this->request->input('page', 1);
+        $pageSize = (int) $this->request->input('page_size', 10);
+        $keyword = (string) $this->request->input('keyword', '');
+        $categoryId = $this->request->input('category_id');
+        $status = $this->request->input('status');
 
         $query = Article::with(['category', 'tags']);
 
@@ -64,7 +69,7 @@ class ArticleController
     #[PostMapping(path: '/api/admin/articles')]
     public function store(): ResponseInterface
     {
-        $data = request()->all();
+        $data = $this->request->all();
 
         $rules = [
             'title' => 'required|max:200',
@@ -100,7 +105,7 @@ class ArticleController
             return ResponseHelper::error('文章不存在', 404);
         }
 
-        $data = request()->all();
+        $data = $this->request->all();
 
         $rules = [
             'title' => 'sometimes|required|max:200',

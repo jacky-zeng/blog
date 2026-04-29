@@ -6,10 +6,12 @@ namespace App\Controller\Admin;
 
 use App\Helper\ResponseHelper;
 use App\Model\Setting;
+use Hyperf\Di\Annotation\Inject;
 use Hyperf\HttpServer\Annotation\Controller;
 use Hyperf\HttpServer\Annotation\GetMapping;
 use Hyperf\HttpServer\Annotation\PutMapping;
 use Hyperf\HttpServer\Annotation\Middleware;
+use Hyperf\HttpServer\Contract\RequestInterface;
 use App\Middleware\AuthMiddleware;
 use Psr\Http\Message\ResponseInterface;
 
@@ -17,6 +19,9 @@ use Psr\Http\Message\ResponseInterface;
 #[Middleware(AuthMiddleware::class)]
 class SettingController
 {
+    #[Inject]
+    protected RequestInterface $request;
+
     #[GetMapping(path: '/api/admin/settings')]
     public function index(): ResponseInterface
     {
@@ -28,7 +33,7 @@ class SettingController
     #[PutMapping(path: '/api/admin/settings')]
     public function update(): ResponseInterface
     {
-        $data = request()->all();
+        $data = $this->request->all();
 
         foreach ($data as $key => $value) {
             Setting::updateOrCreate(

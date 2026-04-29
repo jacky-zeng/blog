@@ -6,12 +6,14 @@ namespace App\Controller\Admin;
 
 use App\Helper\ResponseHelper;
 use App\Model\Tag;
+use Hyperf\Di\Annotation\Inject;
 use Hyperf\HttpServer\Annotation\Controller;
 use Hyperf\HttpServer\Annotation\DeleteMapping;
 use Hyperf\HttpServer\Annotation\GetMapping;
 use Hyperf\HttpServer\Annotation\PostMapping;
 use Hyperf\HttpServer\Annotation\PutMapping;
 use Hyperf\HttpServer\Annotation\Middleware;
+use Hyperf\HttpServer\Contract\RequestInterface;
 use App\Middleware\AuthMiddleware;
 use Psr\Http\Message\ResponseInterface;
 
@@ -19,6 +21,9 @@ use Psr\Http\Message\ResponseInterface;
 #[Middleware(AuthMiddleware::class)]
 class TagController
 {
+    #[Inject]
+    protected RequestInterface $request;
+
     #[GetMapping(path: '/api/admin/tags')]
     public function index(): ResponseInterface
     {
@@ -30,7 +35,7 @@ class TagController
     #[PostMapping(path: '/api/admin/tags')]
     public function store(): ResponseInterface
     {
-        $data = request()->all();
+        $data = $this->request->all();
 
         $rules = [
             'name' => 'required|max:50',
@@ -60,7 +65,7 @@ class TagController
             return ResponseHelper::error('标签不存在', 404);
         }
 
-        $data = request()->all();
+        $data = $this->request->all();
 
         $rules = [
             'name' => 'sometimes|required|max:50',

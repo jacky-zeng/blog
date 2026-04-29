@@ -10,6 +10,7 @@ use Hyperf\Di\Annotation\Inject;
 use Hyperf\HttpServer\Annotation\Controller;
 use Hyperf\HttpServer\Annotation\PostMapping;
 use Hyperf\HttpServer\Annotation\RequestMapping;
+use Hyperf\HttpServer\Contract\RequestInterface;
 use Hyperf\Redis\Redis;
 use Psr\Http\Message\ResponseInterface;
 
@@ -19,11 +20,14 @@ class AuthController
     #[Inject]
     protected Redis $redis;
 
+    #[Inject]
+    protected RequestInterface $request;
+
     #[PostMapping(path: '/api/admin/login')]
     public function login(): ResponseInterface
     {
-        $username = (string) request()->input('username');
-        $password = (string) request()->input('password');
+        $username = (string) $this->request->input('username');
+        $password = (string) $this->request->input('password');
 
         if (!$username || !$password) {
             return ResponseHelper::error('用户名和密码不能为空');
@@ -58,7 +62,7 @@ class AuthController
     #[PostMapping(path: '/api/admin/logout')]
     public function logout(): ResponseInterface
     {
-        $token = request()->getHeaderLine('Authorization');
+        $token = $this->request->getHeaderLine('Authorization');
         $token = str_replace('Bearer ', '', $token);
 
         if ($token) {
@@ -71,7 +75,7 @@ class AuthController
     #[RequestMapping(path: '/api/admin/me', methods: 'GET')]
     public function me(): ResponseInterface
     {
-        $token = request()->getHeaderLine('Authorization');
+        $token = $this->request->getHeaderLine('Authorization');
         $token = str_replace('Bearer ', '', $token);
 
         $userId = $this->redis->get('auth:token:' . $token);

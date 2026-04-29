@@ -7,12 +7,12 @@ namespace App\Controller\Admin;
 use App\Helper\ResponseHelper;
 use App\Model\Article;
 use App\Model\ArticleView;
-use App\Model\Category;
 use App\Model\Comment;
-use App\Model\Tag;
+use Hyperf\Di\Annotation\Inject;
 use Hyperf\HttpServer\Annotation\Controller;
 use Hyperf\HttpServer\Annotation\GetMapping;
 use Hyperf\HttpServer\Annotation\Middleware;
+use Hyperf\HttpServer\Contract\RequestInterface;
 use App\Middleware\AuthMiddleware;
 use Psr\Http\Message\ResponseInterface;
 
@@ -20,51 +20,51 @@ use Psr\Http\Message\ResponseInterface;
 #[Middleware(AuthMiddleware::class)]
 class DashboardController
 {
-    #[GetMapping(path: '/api/admin/dashboard')]
-    public function index(): ResponseInterface
-    {
-        $totalArticles = (int) Article::count();
-        $publishedArticles = (int) Article::where('status', 1)->count();
-        $draftArticles = (int) Article::where('status', 0)->count();
-        $totalCategories = (int) Category::count();
-        $totalTags = (int) Tag::count();
-        $totalComments = (int) Comment::count();
-        $pendingComments = (int) Comment::where('status', 0)->count();
-        $totalViews = (int) Article::sum('view_count');
+    #[Inject]
+    protected RequestInterface $request;
 
-        $todayViews = (int) ArticleView::whereDate('created_at', date('Y-m-d'))->count();
-        $todayArticles = (int) Article::whereDate('created_at', date('Y-m-d'))->count();
+    #[GetMapping(path: '/api/admin/dashboard')]
+    public function stats(): ResponseInterface
+    {
+        $articleCount = Article::count();
+        $publishedCount = Article::where('status', 1)->count();
+        $draftCount = Article::where('status', 0)->count();
+        $commentCount = Comment::count();
+        $pendingCommentCount = Comment::where('status', 0)->count();
+
+        $viewCount = Article::sum('view_count');
+        $totalViews = ArticleView::count();
 
         $recentArticles = Article::with('category')
             ->orderBy('created_at', 'desc')
             ->limit(5)
             ->get();
 
-        $hotArticles = Article::with('category')
-            ->orderBy('view_count', 'desc')
+        $recentComments = Comment::with('article')
+            ->orderBy('created_at', 'desc')
             ->limit(5)
             ->get();
 
-        $categoryStats = Category::withCount('articles')
-            ->orderBy('articles_count', 'desc')
-            ->get();
+        $today = date('Y-m-d');
+        $todayViews = ArticleView::whereDate('created_at', $today)->count();
+
+        $weekViews = ArticleView::where('created_at', '>=', date('Y-m-d', strtotime('-7 days')))->count();
+
+        $monthViews = ArticleView::where('created_at', '>=', date('Y-m-d', strtotime('-30 days')))->count();
 
         return ResponseHelper::success([
-            'stats' => [
-                'total_articles' => $totalArticles,
-                'published_articles' => $publishedArticles,
-                'draft_articles' => $draftArticles,
-                'total_categories' => $totalCategories,
-                'total_tags' => $totalTags,
-                'total_comments' => $totalComments,
-                'pending_comments' => $pendingComments,
-                'total_views' => $totalViews,
-                'today_views' => $todayViews,
-                'today_articles' => $todayArticles,
-            ],
+            'article_count' => $articleCount,
+            'published_count' => $publishedCount,
+            'draft_count' => $draftCount,
+            'comment_count' => $commentCount,
+            'pending_comment_count' => $pendingCommentCount,
+            'view_count' => $viewCount,
+            'total_views' => $totalViews,
             'recent_articles' => $recentArticles,
-            'hot_articles' => $hotArticles,
-            'category_stats' => $categoryStats,
+            'recent_comments' => $recentComments,
+            'today_views' => $todayViews,
+            'week_views' => $weekViews,
+            'month_views' => $monthViews,
         ]);
     }
 }
