@@ -10,26 +10,16 @@ use Hyperf\HttpServer\Contract\RequestInterface;
 use Hyperf\HttpServer\Contract\ResponseInterface;
 use Hyperf\Di\Annotation\Inject;
 
-/**
- * @Controller
- */
+#[Controller]
 class UploadController
 {
-    /**
-     * @Inject
-     * @var RequestInterface
-     */
+    #[Inject]
     protected RequestInterface $request;
 
-    /**
-     * @Inject
-     * @var ResponseInterface
-     */
+    #[Inject]
     protected ResponseInterface $response;
 
-    /**
-     * @PostMapping(path="/api/upload")
-     */
+    #[PostMapping(path: '/api/upload')]
     public function upload()
     {
         $file = $this->request->file('file');

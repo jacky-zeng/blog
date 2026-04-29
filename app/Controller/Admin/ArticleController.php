@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Controller\Admin;
 
 use App\Helper\ResponseHelper;
+use App\Helper\ValidatorHelper;
 use App\Model\Article;
 use App\Model\Tag;
 use Hyperf\Di\Annotation\Inject;
@@ -77,10 +78,10 @@ class ArticleController
             'category_id' => 'required|integer',
         ];
 
-        $validator = validator($data, $rules);
+        $validator = ValidatorHelper::make($data, $rules);
 
         if ($validator->fails()) {
-            return ResponseHelper::error($validator->errors()->first());
+            return ResponseHelper::error($validator->first());
         }
 
         if (!isset($data['slug']) || empty($data['slug'])) {
@@ -113,10 +114,10 @@ class ArticleController
             'category_id' => 'sometimes|required|integer',
         ];
 
-        $validator = validator($data, $rules);
+        $validator = ValidatorHelper::make($data, $rules);
 
         if ($validator->fails()) {
-            return ResponseHelper::error($validator->errors()->first());
+            return ResponseHelper::error($validator->first());
         }
 
         if (isset($data['title']) && !isset($data['slug'])) {

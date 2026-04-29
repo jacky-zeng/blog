@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Controller\Admin;
 
 use App\Helper\ResponseHelper;
+use App\Helper\ValidatorHelper;
 use App\Model\Tag;
 use Hyperf\Di\Annotation\Inject;
 use Hyperf\HttpServer\Annotation\Controller;
@@ -41,10 +42,10 @@ class TagController
             'name' => 'required|max:50',
         ];
 
-        $validator = validator($data, $rules);
+        $validator = ValidatorHelper::make($data, $rules);
 
         if ($validator->fails()) {
-            return ResponseHelper::error($validator->errors()->first());
+            return ResponseHelper::error($validator->first());
         }
 
         if (!isset($data['slug']) || empty($data['slug'])) {
@@ -71,10 +72,10 @@ class TagController
             'name' => 'sometimes|required|max:50',
         ];
 
-        $validator = validator($data, $rules);
+        $validator = ValidatorHelper::make($data, $rules);
 
         if ($validator->fails()) {
-            return ResponseHelper::error($validator->errors()->first());
+            return ResponseHelper::error($validator->first());
         }
 
         if (isset($data['name']) && !isset($data['slug'])) {

@@ -19,3 +19,6 @@ vendor/
 webVue/node_modules/
 webVue/dist/
 webVue/.vite/
+
+# Storage
+/public/storage/

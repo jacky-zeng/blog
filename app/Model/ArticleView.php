@@ -11,6 +11,8 @@ class ArticleView extends Model
 {
     protected ?string $table = 'article_views';
 
+    public bool $timestamps = false;
+
     protected array $fillable = [
         'article_id',
         'ip_address',

@@ -12,6 +12,8 @@ class Comment extends Model
 {
     protected ?string $table = 'comments';
 
+    public bool $timestamps = false;
+
     protected array $fillable = [
         'article_id',
         'parent_id',

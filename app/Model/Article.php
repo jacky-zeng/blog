@@ -13,6 +13,8 @@ class Article extends Model
 {
     protected ?string $table = 'articles';
 
+    public bool $timestamps = false;
+
     protected array $fillable = [
         'title',
         'slug',

@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Controller\Admin;
 
 use App\Helper\ResponseHelper;
+use App\Helper\ValidatorHelper;
 use App\Model\Category;
 use Hyperf\Di\Annotation\Inject;
 use Hyperf\HttpServer\Annotation\Controller;
@@ -55,10 +56,10 @@ class CategoryController
             'name' => 'required|max:50',
         ];
 
-        $validator = validator($data, $rules);
+        $validator = ValidatorHelper::make($data, $rules);
 
         if ($validator->fails()) {
-            return ResponseHelper::error($validator->errors()->first());
+            return ResponseHelper::error($validator->first());
         }
 
         if (!isset($data['slug']) || empty($data['slug'])) {
@@ -89,10 +90,10 @@ class CategoryController
             'name' => 'sometimes|required|max:50',
         ];
 
-        $validator = validator($data, $rules);
+        $validator = ValidatorHelper::make($data, $rules);
 
         if ($validator->fails()) {
-            return ResponseHelper::error($validator->errors()->first());
+            return ResponseHelper::error($validator->first());
         }
 
         if (isset($data['name']) && !isset($data['slug'])) {
