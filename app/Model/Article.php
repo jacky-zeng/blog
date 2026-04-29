@@ -32,20 +32,6 @@ class Article extends Model
         'category_id' => 'integer',
     ];
 
-    public int $id;
-    public string $title;
-    public string $slug;
-    public ?string $summary;
-    public string $content;
-    public ?string $cover_image;
-    public ?int $category_id;
-    public int $status;
-    public int $view_count;
-    public ?string $seo_title;
-    public ?string $seo_description;
-    public string $created_at;
-    public string $updated_at;
-
     public function category(): BelongsTo
     {
         return $this->belongsTo(Category::class, 'category_id');

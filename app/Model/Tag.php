@@ -16,12 +16,6 @@ class Tag extends Model
         'slug',
     ];
 
-    public int $id;
-    public string $name;
-    public string $slug;
-    public string $created_at;
-    public string $updated_at;
-
     public function articles(): BelongsToMany
     {
         return $this->belongsToMany(Article::class, 'article_tags', 'tag_id', 'article_id');

@@ -21,12 +21,6 @@ class ArticleView extends Model
         'article_id' => 'integer',
     ];
 
-    public int $id;
-    public int $article_id;
-    public string $ip_address;
-    public ?string $user_agent;
-    public string $created_at;
-
     public function article(): BelongsTo
     {
         return $this->belongsTo(Article::class, 'article_id');

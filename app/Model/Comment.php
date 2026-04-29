@@ -28,17 +28,6 @@ class Comment extends Model
         'status' => 'integer',
     ];
 
-    public int $id;
-    public int $article_id;
-    public ?int $parent_id;
-    public string $nickname;
-    public string $email;
-    public string $content;
-    public int $status;
-    public ?string $ip_address;
-    public string $created_at;
-    public string $updated_at;
-
     public function article(): BelongsTo
     {
         return $this->belongsTo(Article::class, 'article_id');
