@@ -1,0 +1,274 @@
+<template>
+  <div class="home-page">
+    <el-row :gutter="20">
+      <el-col :span="18">
+        <el-card class="articles-card">
+          <template #header>
+            <div class="card-header">
+              <span>最新文章</span>
+            </div>
+          </template>
+          
+          <div v-if="articles.length > 0">
+            <div v-for="article in articles" :key="article.id" class="article-item">
+              <h3 class="article-title" @click="$router.push(`/article/${article.slug}`)">
+                {{ article.title }}
+              </h3>
+              <div class="article-meta">
+                <el-tag size="small">{{ article.category?.name }}</el-tag>
+                <span class="meta-item">
+                  <el-icon><Calendar /></el-icon>
+                  {{ formatDate(article.created_at) }}
+                </span>
+                <span class="meta-item">
+                  <el-icon><View /></el-icon>
+                  {{ article.view_count }}
+                </span>
+              </div>
+              <p class="article-summary">{{ article.summary || article.content.substring(0, 200) + '...' }}</p>
+              <div class="article-tags" v-if="article.tags && article.tags.length > 0">
+                <el-tag v-for="tag in article.tags" :key="tag.id" size="small" type="info">
+                  {{ tag.name }}
+                </el-tag>
+              </div>
+            </div>
+          </div>
+          <el-empty v-else description="暂无文章" />
+
+          <el-pagination
+            v-if="total > 0"
+            v-model:current-page="currentPage"
+            v-model:page-size="pageSize"
+            :total="total"
+            layout="total, prev, pager, next"
+            @current-change="handleCurrentChange"
+            style="margin-top: 20px; justify-content: center"
+          />
+        </el-card>
+      </el-col>
+      
+      <el-col :span="6">
+        <el-card class="sidebar-card">
+          <template #header>
+            <span>分类</span>
+          </template>
+          <div v-if="categories.length > 0">
+            <div v-for="cat in categories" :key="cat.id" class="category-item" @click="$router.push(`/category/${cat.slug}`)">
+              <span class="category-name">{{ cat.name }}</span>
+              <el-badge :value="cat.articles_count" class="category-count" />
+            </div>
+          </div>
+          <el-empty v-else description="暂无分类" :image-size="60" />
+        </el-card>
+
+        <el-card class="sidebar-card" style="margin-top: 20px;">
+          <template #header>
+            <span>标签云</span>
+          </template>
+          <div v-if="tags.length > 0" class="tags-cloud">
+            <el-tag v-for="tag in tags" :key="tag.id" size="small" @click="$router.push(`/tag/${tag.slug}`)">
+              {{ tag.name }}
+            </el-tag>
+          </div>
+          <el-empty v-else description="暂无标签" :image-size="60" />
+        </el-card>
+
+        <el-card class="sidebar-card" style="margin-top: 20px;">
+          <template #header>
+            <span>搜索</span>
+          </template>
+          <el-input v-model="keyword" placeholder="请输入关键词" @keyup.enter="handleSearch">
+            <template #append>
+              <el-button @click="handleSearch">
+                <el-icon><Search /></el-icon>
+              </el-button>
+            </template>
+          </el-input>
+        </el-card>
+      </el-col>
+    </el-row>
+  </div>
+</template>
+
+<script setup>
+import { ref, onMounted } from 'vue'
+import { useRouter } from 'vue-router'
+import { ElMessage } from 'element-plus'
+import { Calendar, View, Search } from '@element-plus/icons-vue'
+import request from '@/utils/request'
+
+const router = useRouter()
+
+const articles = ref([])
+const categories = ref([])
+const tags = ref([])
+const currentPage = ref(1)
+const pageSize = ref(10)
+const total = ref(0)
+const keyword = ref('')
+
+const loadArticles = async () => {
+  try {
+    const res = await request.get('/articles', {
+      params: {
+        page: currentPage.value,
+        page_size: pageSize.value
+      }
+    })
+    if (res.code === 200) {
+      articles.value = res.data.data
+      total.value = res.data.total
+    }
+  } catch (error) {
+    ElMessage.error('加载文章失败')
+  }
+}
+
+const loadCategories = async () => {
+  try {
+    const res = await request.get('/categories')
+    if (res.code === 200) {
+      categories.value = res.data
+    }
+  } catch (error) {
+    ElMessage.error('加载分类失败')
+  }
+}
+
+const loadTags = async () => {
+  try {
+    const res = await request.get('/tags')
+    if (res.code === 200) {
+      tags.value = res.data
+    }
+  } catch (error) {
+    ElMessage.error('加载标签失败')
+  }
+}
+
+const handleCurrentChange = (val) => {
+  currentPage.value = val
+  loadArticles()
+}
+
+const handleSearch = () => {
+  if (keyword.value) {
+    router.push({ path: '/search', query: { keyword: keyword.value } })
+  }
+}
+
+const formatDate = (dateStr) => {
+  const date = new Date(dateStr)
+  return date.toLocaleDateString('zh-CN')
+}
+
+onMounted(() => {
+  loadArticles()
+  loadCategories()
+  loadTags()
+})
+</script>
+
+<style scoped>
+.home-page {
+  padding: 20px;
+}
+
+.articles-card {
+  margin-bottom: 20px;
+}
+
+.card-header {
+  font-weight: bold;
+}
+
+.article-item {
+  padding: 20px 0;
+  border-bottom: 1px solid #f0f0f0;
+}
+
+.article-item:last-child {
+  border-bottom: none;
+}
+
+.article-title {
+  font-size: 20px;
+  margin: 0 0 10px 0;
+  cursor: pointer;
+  color: #333;
+  transition: color 0.3s;
+}
+
+.article-title:hover {
+  color: #409EFF;
+}
+
+.article-meta {
+  display: flex;
+  align-items: center;
+  gap: 15px;
+  margin-bottom: 10px;
+  color: #909399;
+  font-size: 14px;
+}
+
+.meta-item {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.article-summary {
+  color: #666;
+  line-height: 1.6;
+  margin-bottom: 10px;
+}
+
+.article-tags {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.sidebar-card {
+  margin-bottom: 20px;
+}
+
+.category-item {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 10px 0;
+  cursor: pointer;
+  border-bottom: 1px solid #f0f0f0;
+  transition: all 0.3s;
+}
+
+.category-item:hover {
+  background-color: #f5f7fa;
+  padding-left: 10px;
+}
+
+.category-name {
+  font-weight: 500;
+}
+
+.category-count {
+  flex-shrink: 0;
+}
+
+.tags-cloud {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.tags-cloud .el-tag {
+  cursor: pointer;
+  transition: all 0.3s;
+}
+
+.tags-cloud .el-tag:hover {
+  transform: scale(1.1);
+}
+</style>

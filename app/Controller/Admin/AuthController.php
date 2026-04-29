@@ -1,0 +1,103 @@
+<?php
+
+declare(strict_types=1);
+
+namespace App\Controller\Admin;
+
+use App\Helper\ResponseHelper;
+use App\Model\User;
+use Hyperf\Di\Annotation\Inject;
+use Hyperf\HttpServer\Annotation\Controller;
+use Hyperf\HttpServer\Annotation\PostMapping;
+use Hyperf\HttpServer\Annotation\RequestMapping;
+use Hyperf\Redis\Redis;
+use Psr\Http\Message\ResponseInterface;
+
+#[Controller]
+class AuthController
+{
+    #[Inject]
+    protected Redis $redis;
+
+    #[PostMapping(path: '/api/admin/login')]
+    public function login(): ResponseInterface
+    {
+        $username = (string) request()->input('username');
+        $password = (string) request()->input('password');
+
+        if (!$username || !$password) {
+            return ResponseHelper::error('用户名和密码不能为空');
+        }
+
+        $user = User::where('username', $username)->first();
+
+        if (!$user) {
+            return ResponseHelper::error('用户不存在');
+        }
+
+        if (!password_verify($password, $user->password)) {
+            return ResponseHelper::error('密码错误');
+        }
+
+        $token = $this->generateToken();
+        $this->redis->set('auth:token:' . $token, (string) $user->id, 86400 * 7);
+
+        return ResponseHelper::success([
+            'token' => $token,
+            'user' => [
+                'id' => $user->id,
+                'username' => $user->username,
+                'email' => $user->email,
+                'nickname' => $user->nickname,
+                'avatar' => $user->avatar,
+                'bio' => $user->bio,
+            ],
+        ]);
+    }
+
+    #[PostMapping(path: '/api/admin/logout')]
+    public function logout(): ResponseInterface
+    {
+        $token = request()->getHeaderLine('Authorization');
+        $token = str_replace('Bearer ', '', $token);
+
+        if ($token) {
+            $this->redis->del('auth:token:' . $token);
+        }
+
+        return ResponseHelper::success(null, '退出成功');
+    }
+
+    #[RequestMapping(path: '/api/admin/me', methods: 'GET')]
+    public function me(): ResponseInterface
+    {
+        $token = request()->getHeaderLine('Authorization');
+        $token = str_replace('Bearer ', '', $token);
+
+        $userId = $this->redis->get('auth:token:' . $token);
+
+        if (!$userId) {
+            return ResponseHelper::error('Token无效', 401);
+        }
+
+        $user = User::find((int) $userId);
+
+        if (!$user) {
+            return ResponseHelper::error('用户不存在', 401);
+        }
+
+        return ResponseHelper::success([
+            'id' => $user->id,
+            'username' => $user->username,
+            'email' => $user->email,
+            'nickname' => $user->nickname,
+            'avatar' => $user->avatar,
+            'bio' => $user->bio,
+        ]);
+    }
+
+    private function generateToken(): string
+    {
+        return md5(uniqid('blog_', true) . time());
+    }
+}
