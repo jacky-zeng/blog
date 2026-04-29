@@ -26,6 +26,8 @@ class Article extends Model
         'view_count',
         'seo_title',
         'seo_description',
+        'created_at',
+        'updated_at',
     ];
 
     protected array $casts = [

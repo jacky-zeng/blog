@@ -88,6 +88,9 @@ class ArticleController
             $data['slug'] = $this->generateSlug((string) $data['title']);
         }
 
+        $data['created_at'] = date('Y-m-d H:i:s');
+        $data['updated_at'] = date('Y-m-d H:i:s');
+
         $article = Article::create($data);
 
         if (isset($data['tags']) && is_array($data['tags'])) {
@@ -123,6 +126,8 @@ class ArticleController
         if (isset($data['title']) && !isset($data['slug'])) {
             $data['slug'] = $this->generateSlug((string) $data['title']);
         }
+
+        $data['updated_at'] = date('Y-m-d H:i:s');
 
         $article->update($data);
 
