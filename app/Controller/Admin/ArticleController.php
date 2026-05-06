@@ -123,9 +123,7 @@ class ArticleController
             return ResponseHelper::error($validator->first());
         }
 
-        if (isset($data['title']) && !isset($data['slug'])) {
-            $data['slug'] = $this->generateSlug((string) $data['title']);
-        }
+        unset($data['slug']);
 
         $data['updated_at'] = date('Y-m-d H:i:s');
 

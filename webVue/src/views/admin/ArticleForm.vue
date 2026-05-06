@@ -18,7 +18,7 @@
         </el-form-item>
         
         <el-form-item label="文章内容" prop="content">
-          <el-input v-model="form.content" type="textarea" :rows="15" placeholder="请输入文章内容（支持Markdown）" />
+          <div ref="editorRef" class="ai-editor-wrapper"></div>
         </el-form-item>
         
         <el-form-item label="分类" prop="category_id">
@@ -80,20 +80,25 @@
 </template>
 
 <script setup>
-import { ref, computed, onMounted } from 'vue'
+import { ref, computed, onMounted, onUnmounted, watch } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { ElMessage } from 'element-plus'
 import { Plus } from '@element-plus/icons-vue'
+import { AiEditor } from 'aieditor'
+import 'aieditor/dist/style.css'
 import request from '@/utils/request'
 
 const route = useRoute()
 const router = useRouter()
 
 const formRef = ref(null)
+const editorRef = ref(null)
 const loading = ref(false)
 const categories = ref([])
 const tags = ref([])
 const uploadUrl = '/api/upload'
+
+let aiEditor = null
 
 const isEdit = computed(() => !!route.params.id)
 
@@ -159,6 +164,10 @@ const loadArticle = async () => {
         seo_description: article.seo_description,
         status: article.status
       }
+      
+      if (aiEditor && article.content) {
+        aiEditor.setContent(article.content)
+      }
     }
   } catch (error) {
     ElMessage.error('加载文章失败')
@@ -167,6 +176,10 @@ const loadArticle = async () => {
 
 const handleSubmit = async () => {
   if (!formRef.value) return
+  
+  if (aiEditor) {
+    form.value.content = aiEditor.getHtml()
+  }
   
   await formRef.value.validate(async (valid) => {
     if (valid) {
@@ -216,8 +229,23 @@ const beforeUpload = (file) => {
 onMounted(() => {
   loadCategories()
   loadTags()
+  
+  aiEditor = new AiEditor({
+    element: editorRef.value,
+    placeholder: '请输入文章内容...',
+    content: form.value.content || '',
+    toolbarExcludeKeys: ["ai"]
+  })
+  
   if (isEdit.value) {
     loadArticle()
+  }
+})
+
+onUnmounted(() => {
+  if (aiEditor) {
+    aiEditor.destroy()
+    aiEditor = null
   }
 })
 </script>
@@ -232,6 +260,12 @@ onMounted(() => {
   justify-content: space-between;
   align-items: center;
   font-weight: bold;
+}
+
+.ai-editor-wrapper {
+  height: 500px;
+  border: 1px solid #e4e7ed;
+  border-radius: 4px;
 }
 
 .cover-uploader {

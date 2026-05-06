@@ -91,6 +91,42 @@ import { useRoute } from 'vue-router'
 import { ElMessage } from 'element-plus'
 import { Calendar, View } from '@element-plus/icons-vue'
 import request from '@/utils/request'
+import 'aieditor/dist/style.css'
+import hljs from 'highlight.js/lib/core'
+import javascript from 'highlight.js/lib/languages/javascript'
+import typescript from 'highlight.js/lib/languages/typescript'
+import python from 'highlight.js/lib/languages/python'
+import java from 'highlight.js/lib/languages/java'
+import php from 'highlight.js/lib/languages/php'
+import go from 'highlight.js/lib/languages/go'
+import rust from 'highlight.js/lib/languages/rust'
+import cpp from 'highlight.js/lib/languages/cpp'
+import csharp from 'highlight.js/lib/languages/csharp'
+import ruby from 'highlight.js/lib/languages/ruby'
+import sql from 'highlight.js/lib/languages/sql'
+import json from 'highlight.js/lib/languages/json'
+import html from 'highlight.js/lib/languages/xml'
+import css from 'highlight.js/lib/languages/css'
+import markdown from 'highlight.js/lib/languages/markdown'
+import shell from 'highlight.js/lib/languages/shell'
+import 'highlight.js/styles/atom-one-dark.css'
+
+hljs.registerLanguage('javascript', javascript)
+hljs.registerLanguage('typescript', typescript)
+hljs.registerLanguage('python', python)
+hljs.registerLanguage('java', java)
+hljs.registerLanguage('php', php)
+hljs.registerLanguage('go', go)
+hljs.registerLanguage('rust', rust)
+hljs.registerLanguage('cpp', cpp)
+hljs.registerLanguage('csharp', csharp)
+hljs.registerLanguage('ruby', ruby)
+hljs.registerLanguage('sql', sql)
+hljs.registerLanguage('json', json)
+hljs.registerLanguage('html', html)
+hljs.registerLanguage('css', css)
+hljs.registerLanguage('markdown', markdown)
+hljs.registerLanguage('shell', shell)
 
 const route = useRoute()
 
@@ -125,10 +161,98 @@ const loadArticle = async () => {
     const res = await request.get(`/articles/${route.params.slug}`)
     if (res.code === 200) {
       article.value = res.data
+      setTimeout(() => {
+        highlightCodeBlocks()
+      }, 100)
     }
   } catch (error) {
     ElMessage.error('加载文章失败')
   }
+}
+
+const highlightCodeBlocks = () => {
+  const articleContent = document.querySelector('.article-content')
+  if (!articleContent) {
+    console.log('articleContent not found')
+    return
+  }
+  
+  const pres = articleContent.querySelectorAll('pre')
+  console.log('Found pre elements:', pres.length)
+  
+  pres.forEach((pre) => {
+    let code = pre.querySelector('code')
+    if (!code) {
+      const text = pre.textContent || ''
+      code = document.createElement('code')
+      code.textContent = text
+      pre.innerHTML = ''
+      pre.appendChild(code)
+    }
+    
+    let language = 'plaintext'
+    
+    if (code.classList.length > 0) {
+      const classArray = Array.from(code.classList)
+      const langClass = classArray.find(cls => cls.startsWith('language-') || cls.startsWith('lang-'))
+      if (langClass) {
+        language = langClass.replace(/^(language-|lang-)/, '')
+      }
+    } else if (pre.classList.length > 0) {
+      const classArray = Array.from(pre.classList)
+      const langClass = classArray.find(cls => cls.startsWith('language-') || cls.startsWith('lang-'))
+      if (langClass) {
+        language = langClass.replace(/^(language-|lang-)/, '')
+      }
+    } else if (pre.getAttribute('data-language')) {
+      language = pre.getAttribute('data-language')
+    } else if (pre.getAttribute('data-lang')) {
+      language = pre.getAttribute('data-lang')
+    }
+    
+    console.log('Processing pre code block, language:', language)
+    const languageName = hljs.getLanguage(language) ? language : 'plaintext'
+    const result = hljs.highlight(code.textContent || '', { language: languageName })
+    code.innerHTML = result.value
+    code.classList.add('hljs')
+    pre.classList.add('hljs')
+    pre.style.backgroundColor = '#1a1a2e'
+    pre.style.padding = '16px'
+    pre.style.borderRadius = '8px'
+    pre.style.overflowX = 'auto'
+  })
+  
+  const standaloneCodes = articleContent.querySelectorAll('code:not(pre code)')
+  console.log('Found standalone code elements:', standaloneCodes.length)
+  
+  standaloneCodes.forEach((code) => {
+    let language = 'plaintext'
+    
+    if (code.classList.length > 0) {
+      const classArray = Array.from(code.classList)
+      const langClass = classArray.find(cls => cls.startsWith('language-') || cls.startsWith('lang-'))
+      if (langClass) {
+        language = langClass.replace(/^(language-|lang-)/, '')
+      }
+    }
+    
+    console.log('Processing standalone code, class:', code.className, 'language:', language)
+    const languageName = hljs.getLanguage(language) ? language : 'plaintext'
+    const result = hljs.highlight(code.textContent || '', { language: languageName })
+    code.innerHTML = result.value
+    code.classList.add('hljs')
+    
+    const pre = document.createElement('pre')
+    pre.classList.add('hljs')
+    pre.style.backgroundColor = '#1a1a2e'
+    pre.style.padding = '16px'
+    pre.style.borderRadius = '8px'
+    pre.style.overflowX = 'auto'
+    pre.style.margin = '16px 0'
+    
+    code.parentNode.insertBefore(pre, code)
+    pre.appendChild(code)
+  })
 }
 
 const loadComments = async () => {
@@ -259,6 +383,92 @@ watch(() => route.params.slug, () => {
   color: #333;
   font-size: 16px;
   margin-bottom: 20px;
+}
+
+.article-content :deep(table) {
+  width: 100%;
+  border-collapse: collapse;
+  margin: 16px 0;
+  font-size: 14px;
+}
+
+.article-content :deep(th),
+.article-content :deep(td) {
+  border: 1px solid #e4e7ed;
+  padding: 8px 12px;
+  text-align: left;
+}
+
+.article-content :deep(th) {
+  background-color: #f5f7fa;
+  font-weight: 600;
+}
+
+.article-content :deep(tr:nth-child(even)) {
+  background-color: #fafafa;
+}
+
+.article-content :deep(tr:hover) {
+  background-color: #f5f7fa;
+}
+
+
+
+.article-content :deep(blockquote) {
+  border-left: 4px solid #409EFF;
+  padding: 12px 16px;
+  margin: 16px 0;
+  background-color: #f5f7fa;
+  color: #666;
+  font-style: italic;
+}
+
+.article-content :deep(h1),
+.article-content :deep(h2),
+.article-content :deep(h3),
+.article-content :deep(h4),
+.article-content :deep(h5),
+.article-content :deep(h6) {
+  font-weight: 600;
+  margin: 16px 0 8px 0;
+  color: #333;
+}
+
+.article-content :deep(h1) { font-size: 24px; }
+.article-content :deep(h2) { font-size: 20px; }
+.article-content :deep(h3) { font-size: 18px; }
+.article-content :deep(h4) { font-size: 16px; }
+.article-content :deep(h5) { font-size: 14px; }
+.article-content :deep(h6) { font-size: 14px; }
+
+.article-content :deep(p) {
+  margin: 12px 0;
+}
+
+.article-content :deep(ul),
+.article-content :deep(ol) {
+  padding-left: 24px;
+  margin: 12px 0;
+}
+
+.article-content :deep(li) {
+  margin: 6px 0;
+}
+
+.article-content :deep(a) {
+  color: #409EFF;
+  text-decoration: none;
+}
+
+.article-content :deep(a:hover) {
+  text-decoration: underline;
+}
+
+.article-content :deep(img) {
+  max-width: 100%;
+  height: auto;
+  border-radius: 8px;
+  margin: 8px 0;
 }
 
 .article-tags {
