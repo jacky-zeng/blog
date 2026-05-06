@@ -171,11 +171,11 @@ class ArticleController
     {
         $slug = strtolower(trim(preg_replace('/[^A-Za-z0-9-]+/', '-', $text)));
 
-        if (empty($slug) || $slug === '-' || $slug === '--') {
+        $slug = trim($slug, '-');
+
+        if (empty($slug) || $slug === '-' || $slug === '--' || ctype_digit($slug)) {
             $slug = 'article-' . (string) time();
         }
-
-        $slug = trim($slug, '-');
 
         return $slug;
     }
