@@ -82,9 +82,9 @@ const loadSiteInfo = async () => {
 
 const loadStats = async () => {
   try {
-    const res = await request.get('/admin/dashboard')
+    const res = await request.get('/stats')
     if (res.code === 200) {
-      stats.value = res.data.stats
+      stats.value = res.data
     }
   } catch (error) {
     console.error('加载统计信息失败')

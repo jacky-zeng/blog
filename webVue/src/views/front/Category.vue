@@ -59,7 +59,7 @@ const total = ref(0)
 
 const loadData = async () => {
   try {
-    const res = await request.get(`/categories/${route.params.slug}`)
+    const res = await request.get(`/category/${route.params.slug}`)
     if (res.code === 200) {
       category.value = res.data.category
       articles.value = res.data.articles.data

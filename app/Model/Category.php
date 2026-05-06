@@ -11,7 +11,7 @@ class Category extends Model
 {
     protected ?string $table = 'categories';
 
-    public bool $timestamps = false;
+    public bool $timestamps = true;
 
     protected array $fillable = [
         'name',

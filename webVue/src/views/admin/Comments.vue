@@ -7,22 +7,20 @@
         </div>
       </template>
 
-      <el-form :inline="true" :model="searchForm" class="search-form">
-        <el-form-item label="关键词">
-          <el-input v-model="searchForm.keyword" placeholder="请输入关键词" clearable />
-        </el-form-item>
-        <el-form-item label="状态">
-          <el-select v-model="searchForm.status" placeholder="请选择状态" clearable>
-            <el-option label="待审核" :value="0" />
-            <el-option label="已通过" :value="1" />
-            <el-option label="已拒绝" :value="2" />
-          </el-select>
-        </el-form-item>
-        <el-form-item>
-          <el-button type="primary" @click="handleSearch">搜索</el-button>
-          <el-button @click="handleReset">重置</el-button>
-        </el-form-item>
-      </el-form>
+      <div class="search-form">
+        <span class="label">关键词：</span>
+        <el-input v-model="searchForm.keyword" placeholder="请输入关键词" clearable style="width: 200px; margin-right: 10px;" />
+        
+        <span class="label">状态：</span>
+        <el-select v-model="searchForm.status" placeholder="请选择状态" clearable style="width: 120px; margin-right: 10px;">
+          <el-option label="待审核" :value="0" />
+          <el-option label="已通过" :value="1" />
+          <el-option label="已拒绝" :value="2" />
+        </el-select>
+        
+        <el-button type="primary" @click="handleSearch">搜索</el-button>
+        <el-button @click="handleReset">重置</el-button>
+      </div>
 
       <el-table :data="comments" v-loading="loading" style="width: 100%">
         <el-table-column prop="nickname" label="评论者" width="120" />
@@ -66,7 +64,7 @@
 </template>
 
 <script setup>
-import { ref, onMounted } from 'vue'
+import { ref, reactive, onMounted } from 'vue'
 import { ElMessage, ElMessageBox } from 'element-plus'
 import request from '@/utils/request'
 
@@ -76,7 +74,7 @@ const currentPage = ref(1)
 const pageSize = ref(10)
 const total = ref(0)
 
-const searchForm = ref({
+const searchForm = reactive({
   keyword: '',
   status: null
 })
@@ -88,7 +86,8 @@ const loadComments = async () => {
       params: {
         page: currentPage.value,
         page_size: pageSize.value,
-        ...searchForm.value
+        keyword: searchForm.keyword,
+        status: searchForm.status !== null ? searchForm.status : undefined
       }
     })
     if (res.code === 200) {
@@ -108,10 +107,8 @@ const handleSearch = () => {
 }
 
 const handleReset = () => {
-  searchForm.value = {
-    keyword: '',
-    status: null
-  }
+  searchForm.keyword = ''
+  searchForm.status = null
   currentPage.value = 1
   loadComments()
 }
@@ -199,5 +196,13 @@ onMounted(() => {
 
 .search-form {
   margin-bottom: 20px;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.search-form .label {
+  font-weight: 500;
+  color: #606266;
 }
 </style>

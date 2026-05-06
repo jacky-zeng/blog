@@ -7,7 +7,9 @@ namespace App\Controller\Admin;
 use App\Helper\ResponseHelper;
 use App\Model\Article;
 use App\Model\ArticleView;
+use App\Model\Category;
 use App\Model\Comment;
+use App\Model\Tag;
 use Hyperf\Di\Annotation\Inject;
 use Hyperf\HttpServer\Annotation\Controller;
 use Hyperf\HttpServer\Annotation\GetMapping;
@@ -27,44 +29,35 @@ class DashboardController
     public function stats(): ResponseInterface
     {
         $articleCount = Article::count();
-        $publishedCount = Article::where('status', 1)->count();
-        $draftCount = Article::where('status', 0)->count();
+        $categoryCount = Category::count();
         $commentCount = Comment::count();
-        $pendingCommentCount = Comment::where('status', 0)->count();
-
         $viewCount = Article::sum('view_count');
-        $totalViews = ArticleView::count();
+
+        $categoryStats = Category::withCount(['articles' => function ($query) {
+            $query->where('status', 1);
+        }])->orderBy('articles_count', 'desc')->get();
+
+        $hotArticles = Article::with('category')
+            ->where('status', 1)
+            ->orderBy('view_count', 'desc')
+            ->limit(5)
+            ->get();
 
         $recentArticles = Article::with('category')
             ->orderBy('created_at', 'desc')
             ->limit(5)
             ->get();
 
-        $recentComments = Comment::with('article')
-            ->orderBy('created_at', 'desc')
-            ->limit(5)
-            ->get();
-
-        $today = date('Y-m-d');
-        $todayViews = ArticleView::whereDate('created_at', $today)->count();
-
-        $weekViews = ArticleView::where('created_at', '>=', date('Y-m-d', strtotime('-7 days')))->count();
-
-        $monthViews = ArticleView::where('created_at', '>=', date('Y-m-d', strtotime('-30 days')))->count();
-
         return ResponseHelper::success([
-            'article_count' => $articleCount,
-            'published_count' => $publishedCount,
-            'draft_count' => $draftCount,
-            'comment_count' => $commentCount,
-            'pending_comment_count' => $pendingCommentCount,
-            'view_count' => $viewCount,
-            'total_views' => $totalViews,
+            'stats' => [
+                'total_articles' => $articleCount,
+                'total_categories' => $categoryCount,
+                'total_comments' => $commentCount,
+                'total_views' => $viewCount,
+            ],
+            'category_stats' => $categoryStats,
+            'hot_articles' => $hotArticles,
             'recent_articles' => $recentArticles,
-            'recent_comments' => $recentComments,
-            'today_views' => $todayViews,
-            'week_views' => $weekViews,
-            'month_views' => $monthViews,
         ]);
     }
 }

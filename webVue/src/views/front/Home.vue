@@ -11,7 +11,7 @@
           
           <div v-if="articles.length > 0">
             <div v-for="article in articles" :key="article.id" class="article-item">
-              <h3 class="article-title" @click="$router.push(`/article/${article.slug}`)">
+              <h3 class="article-title" @click="$router.push(`/article/${article.slug || article.id}`)">
                 {{ article.title }}
               </h3>
               <div class="article-meta">

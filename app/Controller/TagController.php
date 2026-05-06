@@ -35,7 +35,11 @@ class TagController
     #[GetMapping(path: '/api/tag/{slug}')]
     public function show(string $slug): ResponseInterface
     {
-        $tag = Tag::where('slug', $slug)->first();
+        $tag = Tag::where('slug', $slug)
+            ->withCount(['articles' => function ($query) {
+                $query->where('status', 1);
+            }])
+            ->first();
 
         if (!$tag) {
             return ResponseHelper::error('标签不存在', 404);

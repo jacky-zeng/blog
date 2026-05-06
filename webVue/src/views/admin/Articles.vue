@@ -10,26 +10,24 @@
         </div>
       </template>
       
-      <el-form :inline="true" :model="searchForm" class="search-form">
-        <el-form-item label="关键词">
-          <el-input v-model="searchForm.keyword" placeholder="请输入标题" clearable />
-        </el-form-item>
-        <el-form-item label="分类">
-          <el-select v-model="searchForm.category_id" placeholder="请选择分类" clearable>
-            <el-option v-for="cat in categories" :key="cat.id" :label="cat.name" :value="cat.id" />
-          </el-select>
-        </el-form-item>
-        <el-form-item label="状态">
-          <el-select v-model="searchForm.status" placeholder="请选择状态" clearable>
-            <el-option label="草稿" :value="0" />
-            <el-option label="已发布" :value="1" />
-          </el-select>
-        </el-form-item>
-        <el-form-item>
-          <el-button type="primary" @click="handleSearch">搜索</el-button>
-          <el-button @click="handleReset">重置</el-button>
-        </el-form-item>
-      </el-form>
+      <div class="search-form">
+        <span class="label">关键词：</span>
+        <el-input v-model="searchForm.keyword" placeholder="请输入标题" clearable style="width: 200px; margin-right: 10px;" />
+        
+        <span class="label">分类：</span>
+        <el-select v-model="searchForm.category_id" placeholder="请选择分类" clearable style="width: 150px; margin-right: 10px;">
+          <el-option v-for="cat in categories" :key="cat.id" :label="cat.name" :value="cat.id" />
+        </el-select>
+        
+        <span class="label">状态：</span>
+        <el-select v-model="searchForm.status" placeholder="请选择状态" clearable style="width: 120px; margin-right: 10px;">
+          <el-option label="草稿" :value="0" />
+          <el-option label="已发布" :value="1" />
+        </el-select>
+        
+        <el-button type="primary" @click="handleSearch">搜索</el-button>
+        <el-button @click="handleReset">重置</el-button>
+      </div>
 
       <el-table :data="articles" v-loading="loading" style="width: 100%">
         <el-table-column prop="title" label="标题" />
@@ -77,7 +75,7 @@
 </template>
 
 <script setup>
-import { ref, onMounted } from 'vue'
+import { ref, reactive, onMounted } from 'vue'
 import { ElMessage, ElMessageBox } from 'element-plus'
 import request from '@/utils/request'
 
@@ -88,7 +86,7 @@ const currentPage = ref(1)
 const pageSize = ref(10)
 const total = ref(0)
 
-const searchForm = ref({
+const searchForm = reactive({
   keyword: '',
   category_id: null,
   status: null
@@ -101,7 +99,9 @@ const loadArticles = async () => {
       params: {
         page: currentPage.value,
         page_size: pageSize.value,
-        ...searchForm.value
+        keyword: searchForm.keyword,
+        category_id: searchForm.category_id !== null ? searchForm.category_id : undefined,
+        status: searchForm.status !== null ? searchForm.status : undefined
       }
     })
     if (res.code === 200) {
@@ -132,11 +132,9 @@ const handleSearch = () => {
 }
 
 const handleReset = () => {
-  searchForm.value = {
-    keyword: '',
-    category_id: null,
-    status: null
-  }
+  searchForm.keyword = ''
+  searchForm.category_id = null
+  searchForm.status = null
   currentPage.value = 1
   loadArticles()
 }
@@ -191,5 +189,13 @@ onMounted(() => {
 
 .search-form {
   margin-bottom: 20px;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.search-form .label {
+  font-weight: 500;
+  color: #606266;
 }
 </style>

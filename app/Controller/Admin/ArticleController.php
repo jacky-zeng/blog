@@ -170,6 +170,13 @@ class ArticleController
     private function generateSlug(string $text): string
     {
         $slug = strtolower(trim(preg_replace('/[^A-Za-z0-9-]+/', '-', $text)));
+
+        if (empty($slug) || $slug === '-' || $slug === '--') {
+            $slug = 'article-' . (string) time();
+        }
+
+        $slug = trim($slug, '-');
+
         return $slug;
     }
 }

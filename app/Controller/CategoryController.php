@@ -36,7 +36,11 @@ class CategoryController
     #[GetMapping(path: '/api/category/{slug}')]
     public function show(string $slug): ResponseInterface
     {
-        $category = Category::where('slug', $slug)->first();
+        $category = Category::where('slug', $slug)
+            ->withCount(['articles' => function ($query) {
+                $query->where('status', 1);
+            }])
+            ->first();
 
         if (!$category) {
             return ResponseHelper::error('分类不存在', 404);

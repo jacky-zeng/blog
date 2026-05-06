@@ -76,7 +76,15 @@ const loadSettings = async () => {
   try {
     const res = await request.get('/admin/settings')
     if (res.code === 200) {
-      Object.assign(form.value, res.data)
+      const data = res.data
+      Object.assign(form.value, data)
+      // 将字符串类型的开关值转换为数字
+      if (data.comment_enabled !== undefined) {
+        form.value.comment_enabled = parseInt(data.comment_enabled) || 0
+      }
+      if (data.comment_audit !== undefined) {
+        form.value.comment_audit = parseInt(data.comment_audit) || 0
+      }
     }
   } catch (error) {
     ElMessage.error('加载设置失败')

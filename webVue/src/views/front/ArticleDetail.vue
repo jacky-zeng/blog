@@ -86,7 +86,7 @@
 </template>
 
 <script setup>
-import { ref, onMounted } from 'vue'
+import { ref, onMounted, watch } from 'vue'
 import { useRoute } from 'vue-router'
 import { ElMessage } from 'element-plus'
 import { Calendar, View } from '@element-plus/icons-vue'
@@ -97,7 +97,7 @@ const route = useRoute()
 const article = ref(null)
 const comments = ref([])
 const relatedArticles = ref([])
-const commentEnabled = ref(true)
+const commentEnabled = ref(false)
 const commentLoading = ref(false)
 const commentFormRef = ref(null)
 
@@ -158,6 +158,17 @@ const loadRelatedArticles = async () => {
   }
 }
 
+const loadSettings = async () => {
+  try {
+    const res = await request.get('/settings')
+    if (res.code === 200) {
+      commentEnabled.value = parseInt(res.data.comment_enabled) === 1
+    }
+  } catch (error) {
+    console.error('加载设置失败')
+  }
+}
+
 const handleSubmitComment = async () => {
   if (!commentFormRef.value) return
   
@@ -186,6 +197,16 @@ const formatDate = (dateStr) => {
 }
 
 onMounted(() => {
+  loadArticle()
+  loadComments()
+  loadRelatedArticles()
+  loadSettings()
+})
+
+watch(() => route.params.slug, () => {
+  article.value = null
+  comments.value = []
+  relatedArticles.value = []
   loadArticle()
   loadComments()
   loadRelatedArticles()

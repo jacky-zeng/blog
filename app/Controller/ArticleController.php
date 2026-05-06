@@ -8,6 +8,7 @@ use App\Helper\ResponseHelper;
 use App\Model\Article;
 use App\Model\ArticleView;
 use App\Model\Comment;
+use App\Model\Setting;
 use Hyperf\Di\Annotation\Inject;
 use Hyperf\HttpServer\Annotation\Controller;
 use Hyperf\HttpServer\Annotation\GetMapping;
@@ -48,13 +49,17 @@ class ArticleController
         return ResponseHelper::success($articles->toArray());
     }
 
-    #[GetMapping(path: '/api/article/{slug}')]
+    #[GetMapping(path: '/api/articles/{slug}')]
     public function show(string $slug): ResponseInterface
     {
         $article = Article::with(['category', 'tags'])
-            ->where('slug', $slug)
-            ->where('status', 1)
-            ->first();
+            ->where('status', 1);
+
+        if (is_numeric($slug)) {
+            $article = $article->where('id', (int) $slug)->first();
+        } else {
+            $article = $article->where('slug', $slug)->first();
+        }
 
         if (!$article) {
             return ResponseHelper::error('文章不存在', 404);
@@ -65,6 +70,74 @@ class ArticleController
         $this->recordView($article->id);
 
         return ResponseHelper::success($article);
+    }
+
+    #[GetMapping(path: '/api/articles/{slug}/comments')]
+    public function comments(string $slug): ResponseInterface
+    {
+        $article = Article::where('status', 1);
+
+        if (is_numeric($slug)) {
+            $article = $article->where('id', (int) $slug)->first();
+        } else {
+            $article = $article->where('slug', $slug)->first();
+        }
+
+        if (!$article) {
+            return ResponseHelper::error('文章不存在', 404);
+        }
+
+        $comments = Comment::where('article_id', $article->id)
+            ->where('status', 1)
+            ->orderBy('created_at', 'desc')
+            ->get();
+
+        return ResponseHelper::success($comments);
+    }
+
+    #[PostMapping(path: '/api/articles/{slug}/comments')]
+    public function storeComment(string $slug): ResponseInterface
+    {
+        $article = Article::where('status', 1);
+
+        if (is_numeric($slug)) {
+            $article = $article->where('id', (int) $slug)->first();
+        } else {
+            $article = $article->where('slug', $slug)->first();
+        }
+
+        if (!$article) {
+            return ResponseHelper::error('文章不存在', 404);
+        }
+
+        $nickname = (string) $this->request->input('nickname', '');
+        $email = (string) $this->request->input('email', '');
+        $content = (string) $this->request->input('content', '');
+        $parentId = $this->request->input('parent_id');
+
+        if (empty($nickname) || empty($email) || empty($content)) {
+            return ResponseHelper::error('请填写完整信息');
+        }
+
+        $settings = Setting::all()->pluck('value', 'key');
+        $commentAudit = isset($settings['comment_audit']) ? (int) $settings['comment_audit'] : 1;
+        
+        $commentData = [
+            'article_id' => $article->id,
+            'nickname' => $nickname,
+            'email' => $email,
+            'content' => $content,
+            'ip_address' => $this->getClientIp(),
+            'status' => $commentAudit === 1 ? 0 : 1,
+        ];
+
+        if ($parentId !== null) {
+            $commentData['parent_id'] = (int) $parentId;
+        }
+
+        $comment = Comment::create($commentData);
+
+        return ResponseHelper::success($comment, '评论成功');
     }
 
     #[PostMapping(path: '/api/comment')]

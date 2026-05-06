@@ -2,7 +2,7 @@
   <div class="dashboard">
     <el-row :gutter="20" class="stats-row">
       <el-col :span="6" v-for="stat in stats" :key="stat.key">
-        <el-card class="stat-card">
+        <el-card class="stat-card" @click="handleStatClick(stat.path)">
           <div class="stat-content">
             <div class="stat-icon" :style="{ background: stat.color }">
               <el-icon :size="24"><component :is="stat.icon" /></el-icon>
@@ -84,16 +84,23 @@
 
 <script setup>
 import { ref, onMounted } from 'vue'
+import { useRouter } from 'vue-router'
 import { ElMessage } from 'element-plus'
 import request from '@/utils/request'
 import { Document, Folder, PriceTag, ChatDotRound, View, Calendar, DataAnalysis } from '@element-plus/icons-vue'
 
 const stats = ref([
-  { key: 'total_articles', label: '文章总数', value: 0, icon: Document, color: '#409EFF' },
-  { key: 'total_categories', label: '分类数', value: 0, icon: Folder, color: '#67C23A' },
-  { key: 'total_comments', label: '评论数', value: 0, icon: ChatDotRound, color: '#E6A23C' },
-  { key: 'total_views', label: '总访问量', value: 0, icon: View, color: '#F56C6C' }
+  { key: 'total_articles', label: '文章总数', value: 0, icon: Document, color: '#409EFF', path: '/admin/articles' },
+  { key: 'total_categories', label: '分类数', value: 0, icon: Folder, color: '#67C23A', path: '/admin/categories' },
+  { key: 'total_comments', label: '评论数', value: 0, icon: ChatDotRound, color: '#E6A23C', path: '/admin/comments' },
+  { key: 'total_views', label: '总访问量', value: 0, icon: View, color: '#F56C6C', path: '/admin/articles' }
 ])
+
+const router = useRouter()
+
+const handleStatClick = (path) => {
+  router.push(path)
+}
 
 const categoryStats = ref([])
 const hotArticles = ref([])

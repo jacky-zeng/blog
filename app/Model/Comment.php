@@ -12,7 +12,9 @@ class Comment extends Model
 {
     protected ?string $table = 'comments';
 
-    public bool $timestamps = false;
+    public bool $timestamps = true;
+
+    const UPDATED_AT = null;
 
     protected array $fillable = [
         'article_id',

@@ -6,6 +6,8 @@ namespace App\Controller;
 
 use App\Helper\ResponseHelper;
 use App\Model\Article;
+use App\Model\ArticleView;
+use App\Model\Category;
 use App\Model\Setting;
 use App\Model\Tag;
 use Hyperf\Di\Annotation\Inject;
@@ -48,6 +50,37 @@ class HomeController
             });
 
         return ResponseHelper::success($articles);
+    }
+
+    #[GetMapping(path: '/api/stats')]
+    public function stats(): ResponseInterface
+    {
+        $totalArticles = Article::where('status', 1)->count();
+        $totalCategories = Category::whereHas('articles', function ($query) {
+            $query->where('status', 1);
+        })->count();
+        $totalTags = Tag::whereHas('articles', function ($query) {
+            $query->where('status', 1);
+        })->count();
+        $totalViews = Article::sum('view_count');
+
+        return ResponseHelper::success([
+            'total_articles' => $totalArticles,
+            'total_categories' => $totalCategories,
+            'total_tags' => $totalTags,
+            'total_views' => $totalViews,
+        ]);
+    }
+
+    #[GetMapping(path: '/api/settings')]
+    public function settings(): ResponseInterface
+    {
+        $settings = Setting::all()->pluck('value', 'key');
+
+        return ResponseHelper::success([
+            'comment_enabled' => $settings['comment_enabled'] ?? '1',
+            'comment_audit' => $settings['comment_audit'] ?? '1',
+        ]);
     }
 
     #[GetMapping(path: '/api/search')]
