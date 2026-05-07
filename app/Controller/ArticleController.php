@@ -4,11 +4,13 @@ declare(strict_types=1);
 
 namespace App\Controller;
 
+use App\Cache\SiteCacheKey;
 use App\Helper\ResponseHelper;
 use App\Model\Article;
 use App\Model\ArticleView;
 use App\Model\Comment;
 use App\Model\Setting;
+use Hyperf\Cache\Cache;
 use Hyperf\Di\Annotation\Inject;
 use Hyperf\HttpServer\Annotation\Controller;
 use Hyperf\HttpServer\Annotation\GetMapping;
@@ -22,6 +24,9 @@ class ArticleController
     #[Inject]
     protected RequestInterface $request;
 
+    #[Inject]
+    protected Cache $cache;
+
     #[GetMapping(path: '/api/articles')]
     public function index(): ResponseInterface
     {
@@ -29,6 +34,13 @@ class ArticleController
         $pageSize = (int) $this->request->input('page_size', 10);
         $categoryId = $this->request->input('category_id');
         $tagId = $this->request->input('tag_id');
+
+        $cacheKey = SiteCacheKey::articlesList($page, $pageSize);
+        
+        $cachedArticles = $this->cache->get($cacheKey);
+        if ($cachedArticles && $page <= 5) {
+            return ResponseHelper::success(unserialize($cachedArticles));
+        }
 
         $query = Article::with(['category', 'tags'])
             ->where('status', 1);
@@ -51,7 +63,13 @@ class ArticleController
             return $article;
         });
 
-        return ResponseHelper::success($articles->toArray());
+        $result = $articles->toArray();
+        
+        if ($page <= 5) {
+            $this->cache->set($cacheKey, serialize($result), 600);
+        }
+
+        return ResponseHelper::success($result);
     }
 
     #[GetMapping(path: '/api/articles/{slug}')]
@@ -61,18 +79,22 @@ class ArticleController
             return $response;
         }
 
-        $article = Article::with(['category', 'tags'])
-            ->where('status', 1);
+        $cacheKey = SiteCacheKey::articleDetail($slug);
+        
+        $cachedArticle = $this->cache->get($cacheKey);
+        if ($cachedArticle) {
+            $article = unserialize($cachedArticle);
+        } else {
+            $article = Article::with(['category', 'tags'])
+                ->where('status', 1)
+                ->where('slug', $slug)
+                ->first();
 
-        //已注释，不支持id直接查询文章详情
-        // if (is_numeric($slug)) {
-        //     $article = $article->where('id', (int) $slug)->first();
-        // } else {
-        $article = $article->where('slug', $slug)->first();
-        // }
-
-        if (!$article) {
-            return ResponseHelper::error('文章不存在', 404);
+            if (!$article) {
+                return ResponseHelper::error('文章不存在', 404);
+            }
+            
+            $this->cache->set($cacheKey, serialize($article), 7200);
         }
 
         $article->increment('view_count');
@@ -87,6 +109,13 @@ class ArticleController
     {
         if (($response = $this->validateSlug($slug)) !== null) {
             return $response;
+        }
+
+        $cacheKey = SiteCacheKey::articleComments($slug);
+        
+        $cachedComments = $this->cache->get($cacheKey);
+        if ($cachedComments) {
+            return ResponseHelper::success(unserialize($cachedComments));
         }
 
         $article = Article::where('status', 1);
@@ -105,6 +134,8 @@ class ArticleController
             ->where('status', 1)
             ->orderBy('created_at', 'desc')
             ->get();
+
+        $this->cache->set($cacheKey, serialize($comments), 300);
 
         return ResponseHelper::success($comments);
     }

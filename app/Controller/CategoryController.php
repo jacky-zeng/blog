@@ -4,8 +4,10 @@ declare(strict_types=1);
 
 namespace App\Controller;
 
+use App\Cache\SiteCacheKey;
 use App\Helper\ResponseHelper;
 use App\Model\Category;
+use Hyperf\Cache\Cache;
 use Hyperf\Di\Annotation\Inject;
 use Hyperf\HttpServer\Annotation\Controller;
 use Hyperf\HttpServer\Annotation\GetMapping;
@@ -18,9 +20,19 @@ class CategoryController
     #[Inject]
     protected RequestInterface $request;
 
+    #[Inject]
+    protected Cache $cache;
+
     #[GetMapping(path: '/api/categories')]
     public function index(): ResponseInterface
     {
+        $cacheKey = SiteCacheKey::categories();
+        
+        $cachedCategories = $this->cache->get($cacheKey);
+        if ($cachedCategories) {
+            return ResponseHelper::success(unserialize($cachedCategories));
+        }
+
         $categories = Category::whereHas('articles', function ($query) {
             $query->where('status', 1);
         })
@@ -29,6 +41,8 @@ class CategoryController
             }])
             ->orderBy('sort_order', 'asc')
             ->get();
+
+        $this->cache->set($cacheKey, serialize($categories), 1800);
 
         return ResponseHelper::success($categories);
     }

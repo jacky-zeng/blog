@@ -4,9 +4,11 @@ declare(strict_types=1);
 
 namespace App\Controller\Admin;
 
+use App\Cache\SiteCacheKey;
 use App\Helper\ResponseHelper;
 use App\Helper\ValidatorHelper;
 use App\Model\Category;
+use Hyperf\Cache\Cache;
 use Hyperf\Di\Annotation\Inject;
 use Hyperf\HttpServer\Annotation\Controller;
 use Hyperf\HttpServer\Annotation\DeleteMapping;
@@ -24,6 +26,9 @@ class CategoryController
 {
     #[Inject]
     protected RequestInterface $request;
+
+    #[Inject]
+    protected Cache $cache;
 
     #[GetMapping(path: '/api/admin/categories')]
     public function index(): ResponseInterface
@@ -72,6 +77,8 @@ class CategoryController
 
         $category = Category::create($data);
 
+        $this->cache->delete(SiteCacheKey::categories());
+
         return ResponseHelper::success($category, '创建成功');
     }
 
@@ -102,6 +109,8 @@ class CategoryController
 
         $category->update($data);
 
+        $this->cache->delete(SiteCacheKey::categories());
+
         return ResponseHelper::success($category, '更新成功');
     }
 
@@ -119,6 +128,8 @@ class CategoryController
         }
 
         $category->delete();
+
+        $this->cache->delete(SiteCacheKey::categories());
 
         return ResponseHelper::success(null, '删除成功');
     }

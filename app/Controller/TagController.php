@@ -4,8 +4,10 @@ declare(strict_types=1);
 
 namespace App\Controller;
 
+use App\Cache\SiteCacheKey;
 use App\Helper\ResponseHelper;
 use App\Model\Tag;
+use Hyperf\Cache\Cache;
 use Hyperf\Di\Annotation\Inject;
 use Hyperf\HttpServer\Annotation\Controller;
 use Hyperf\HttpServer\Annotation\GetMapping;
@@ -18,9 +20,19 @@ class TagController
     #[Inject]
     protected RequestInterface $request;
 
+    #[Inject]
+    protected Cache $cache;
+
     #[GetMapping(path: '/api/tags')]
     public function index(): ResponseInterface
     {
+        $cacheKey = SiteCacheKey::tags();
+        
+        $cachedTags = $this->cache->get($cacheKey);
+        if ($cachedTags) {
+            return ResponseHelper::success(unserialize($cachedTags));
+        }
+
         $tags = Tag::whereHas('articles', function ($query) {
             $query->where('status', 1);
         })
@@ -28,6 +40,8 @@ class TagController
                 $query->where('status', 1);
             }])
             ->get();
+
+        $this->cache->set($cacheKey, serialize($tags), 1800);
 
         return ResponseHelper::success($tags);
     }

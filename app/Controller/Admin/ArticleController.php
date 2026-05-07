@@ -4,10 +4,12 @@ declare(strict_types=1);
 
 namespace App\Controller\Admin;
 
+use App\Cache\SiteCacheKey;
 use App\Helper\ResponseHelper;
 use App\Helper\ValidatorHelper;
 use App\Model\Article;
 use App\Model\Tag;
+use Hyperf\Cache\Cache;
 use Hyperf\Di\Annotation\Inject;
 use Hyperf\HttpServer\Annotation\Controller;
 use Hyperf\HttpServer\Annotation\DeleteMapping;
@@ -25,6 +27,9 @@ class ArticleController
 {
     #[Inject]
     protected RequestInterface $request;
+
+    #[Inject]
+    protected Cache $cache;
 
     #[GetMapping(path: '/api/admin/articles')]
     public function index(): ResponseInterface
@@ -97,6 +102,8 @@ class ArticleController
             $this->syncTags($article, $data['tags']);
         }
 
+        $this->clearArticlesListCache();
+
         return ResponseHelper::success($article->load('category', 'tags'), '创建成功');
     }
 
@@ -133,6 +140,9 @@ class ArticleController
             $this->syncTags($article, $data['tags']);
         }
 
+        $this->cache->delete(SiteCacheKey::articleDetail($article->slug));
+        $this->clearArticlesListCache();
+
         return ResponseHelper::success($article->load('category', 'tags'), '更新成功');
     }
 
@@ -145,6 +155,9 @@ class ArticleController
             return ResponseHelper::error('文章不存在', 404);
         }
 
+        $this->cache->delete(SiteCacheKey::articleDetail($article->slug));
+        $this->clearArticlesListCache();
+        
         $article->delete();
 
         return ResponseHelper::success(null, '删除成功');
@@ -190,9 +203,21 @@ class ArticleController
         
         // 4. 二次哈希 + 只保留数字+字母，截取8位
 
-        //从“qysfjxbpm6391”中随机挑出3个字符
+        //从"qysfjxbpm6391"中随机挑出3个字符
         $randomChars = substr(str_shuffle('qysfjxbpm6391'), 0, 3);
 
         return $randomChars.substr(preg_replace('/[^a-z0-9]/', '', md5($mixStr)), 0, 8);
+    }
+
+    private function clearArticlesListCache(): void
+    {
+        $prefix = SiteCacheKey::articlesListPrefix();
+        
+        for ($page = 1; $page <= 5; $page++) {
+            $pageSizes = [10, 20, 30, 50];
+            foreach ($pageSizes as $pageSize) {
+                $this->cache->delete($prefix . $page . ':' . $pageSize);
+            }
+        }
     }
 }

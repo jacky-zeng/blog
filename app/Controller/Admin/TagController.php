@@ -4,9 +4,11 @@ declare(strict_types=1);
 
 namespace App\Controller\Admin;
 
+use App\Cache\SiteCacheKey;
 use App\Helper\ResponseHelper;
 use App\Helper\ValidatorHelper;
 use App\Model\Tag;
+use Hyperf\Cache\Cache;
 use Hyperf\Di\Annotation\Inject;
 use Hyperf\HttpServer\Annotation\Controller;
 use Hyperf\HttpServer\Annotation\DeleteMapping;
@@ -24,6 +26,9 @@ class TagController
 {
     #[Inject]
     protected RequestInterface $request;
+
+    #[Inject]
+    protected Cache $cache;
 
     #[GetMapping(path: '/api/admin/tags')]
     public function index(): ResponseInterface
@@ -56,6 +61,8 @@ class TagController
 
         $tag = Tag::create($data);
 
+        $this->cache->delete(SiteCacheKey::tags());
+
         return ResponseHelper::success($tag, '创建成功');
     }
 
@@ -86,6 +93,8 @@ class TagController
 
         $tag->update($data);
 
+        $this->cache->delete(SiteCacheKey::tags());
+
         return ResponseHelper::success($tag, '更新成功');
     }
 
@@ -99,6 +108,8 @@ class TagController
         }
 
         $tag->delete();
+
+        $this->cache->delete(SiteCacheKey::tags());
 
         return ResponseHelper::success(null, '删除成功');
     }

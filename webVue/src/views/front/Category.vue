@@ -19,10 +19,6 @@
               <el-icon><Calendar /></el-icon>
               {{ formatDate(article.created_at) }}
             </span>
-            <span class="meta-item">
-              <el-icon><View /></el-icon>
-              {{ article.view_count }}
-            </span>
           </div>
           <p class="article-summary">{{ article.summary || article.content.substring(0, 200) + '...' }}</p>
         </div>
@@ -46,7 +42,7 @@
 import { ref, onMounted } from 'vue'
 import { useRoute } from 'vue-router'
 import { ElMessage } from 'element-plus'
-import { Calendar, View } from '@element-plus/icons-vue'
+import { Calendar } from '@element-plus/icons-vue'
 import request from '@/utils/request'
 
 const route = useRoute()

@@ -20,10 +20,6 @@
                   <el-icon><Calendar /></el-icon>
                   {{ formatDate(article.created_at) }}
                 </span>
-                <span class="meta-item">
-                  <el-icon><View /></el-icon>
-                  {{ article.view_count }}
-                </span>
               </div>
               <p class="article-summary">{{ article.summary || article.content.substring(0, 200) + '...' }}</p>
               <div class="article-tags" v-if="article.tags && article.tags.length > 0">
@@ -73,19 +69,7 @@
           <el-empty v-else description="暂无标签" :image-size="60" />
         </el-card>
 
-        <el-card class="sidebar-card" style="margin-top: 20px;">
-          <template #header>
-            <span>搜索</span>
-          </template>
-          <el-input v-model="keyword" placeholder="请输入关键词" @keyup.enter="handleSearch">
-            <template #append>
-              <el-button @click="handleSearch">
-                <el-icon><Search /></el-icon>
-              </el-button>
-            </template>
-          </el-input>
-        </el-card>
-      </el-col>
+        </el-col>
     </el-row>
   </div>
 </template>
@@ -94,7 +78,7 @@
 import { ref, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
 import { ElMessage } from 'element-plus'
-import { Calendar, View, Search } from '@element-plus/icons-vue'
+import { Calendar } from '@element-plus/icons-vue'
 import request from '@/utils/request'
 
 const router = useRouter()
@@ -105,8 +89,6 @@ const tags = ref([])
 const currentPage = ref(1)
 const pageSize = ref(10)
 const total = ref(0)
-const keyword = ref('')
-
 const loadArticles = async () => {
   try {
     const res = await request.get('/articles', {
@@ -149,12 +131,6 @@ const loadTags = async () => {
 const handleCurrentChange = (val) => {
   currentPage.value = val
   loadArticles()
-}
-
-const handleSearch = () => {
-  if (keyword.value) {
-    router.push({ path: '/search', query: { keyword: keyword.value } })
-  }
 }
 
 const formatDate = (dateStr) => {

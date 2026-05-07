@@ -11,10 +11,6 @@
               <el-icon><Calendar /></el-icon>
               {{ formatDate(article.created_at) }}
             </span>
-            <span class="meta-item">
-              <el-icon><View /></el-icon>
-              {{ article.view_count }}
-            </span>
           </div>
 
           <div v-if="article.cover_image" class="article-cover">
@@ -89,7 +85,7 @@
 import { ref, onMounted, watch } from 'vue'
 import { useRoute } from 'vue-router'
 import { ElMessage } from 'element-plus'
-import { Calendar, View } from '@element-plus/icons-vue'
+import { Calendar } from '@element-plus/icons-vue'
 import request from '@/utils/request'
 import 'aieditor/dist/style.css'
 import hljs from 'highlight.js/lib/core'
