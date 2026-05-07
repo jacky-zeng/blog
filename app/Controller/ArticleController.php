@@ -46,20 +46,30 @@ class ArticleController
         $articles = $query->orderBy('created_at', 'desc')
             ->paginate($pageSize, ['*'], 'page', $page);
 
+        $articles->getCollection()->transform(function ($article) {
+            $article->content = $this->stripHtmlAndTruncate((string) $article->content);
+            return $article;
+        });
+
         return ResponseHelper::success($articles->toArray());
     }
 
     #[GetMapping(path: '/api/articles/{slug}')]
     public function show(string $slug): ResponseInterface
     {
+        if (($response = $this->validateSlug($slug)) !== null) {
+            return $response;
+        }
+
         $article = Article::with(['category', 'tags'])
             ->where('status', 1);
 
-        if (is_numeric($slug)) {
-            $article = $article->where('id', (int) $slug)->first();
-        } else {
-            $article = $article->where('slug', $slug)->first();
-        }
+        //已注释，不支持id直接查询文章详情
+        // if (is_numeric($slug)) {
+        //     $article = $article->where('id', (int) $slug)->first();
+        // } else {
+        $article = $article->where('slug', $slug)->first();
+        // }
 
         if (!$article) {
             return ResponseHelper::error('文章不存在', 404);
@@ -75,6 +85,10 @@ class ArticleController
     #[GetMapping(path: '/api/articles/{slug}/comments')]
     public function comments(string $slug): ResponseInterface
     {
+        if (($response = $this->validateSlug($slug)) !== null) {
+            return $response;
+        }
+
         $article = Article::where('status', 1);
 
         if (is_numeric($slug)) {
@@ -98,6 +112,10 @@ class ArticleController
     #[PostMapping(path: '/api/articles/{slug}/comments')]
     public function storeComment(string $slug): ResponseInterface
     {
+        if (($response = $this->validateSlug($slug)) !== null) {
+            return $response;
+        }
+
         $article = Article::where('status', 1);
 
         if (is_numeric($slug)) {
@@ -194,5 +212,38 @@ class ArticleController
         $serverParams = $this->request->getServerParams();
 
         return $serverParams['remote_addr'] ?? '0.0.0.0';
+    }
+
+    private function stripHtmlAndTruncate(string $content, int $length = 200): string
+    {
+        $content = strip_tags($content);
+        $content = preg_replace('/\s+/', ' ', $content);
+        $content = trim($content);
+        
+        if (mb_strlen($content) > $length) {
+            return mb_substr($content, 0, $length) . '...';
+        }
+        
+        return $content;
+    }
+
+    private function validateSlug(string $slug): ?ResponseInterface
+    {
+        if (strlen($slug) < 11) {
+            return ResponseHelper::error('文章不存在', 404);
+        }
+
+        $first3Chars = substr($slug, 0, 3);
+
+        $str = "qysfjxbpm6391";
+        $checkChars = [$first3Chars[0], $first3Chars[1], $first3Chars[2]];
+
+        foreach ($checkChars as $c) {
+            if (strpos($str, $c) === false) {
+                return ResponseHelper::error('文章不存在', 404);
+            }
+        }
+
+        return null;
     }
 }

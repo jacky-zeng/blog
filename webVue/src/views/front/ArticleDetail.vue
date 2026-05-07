@@ -190,7 +190,7 @@ const highlightCodeBlocks = () => {
       pre.appendChild(code)
     }
     
-    let language = 'plaintext'
+    let language = 'text'
     
     if (code.classList.length > 0) {
       const classArray = Array.from(code.classList)
@@ -211,11 +211,14 @@ const highlightCodeBlocks = () => {
     }
     
     console.log('Processing pre code block, language:', language)
-    const languageName = hljs.getLanguage(language) ? language : 'plaintext'
-    const result = hljs.highlight(code.textContent || '', { language: languageName })
-    code.innerHTML = result.value
-    code.classList.add('hljs')
-    pre.classList.add('hljs')
+    
+    if (hljs.getLanguage(language)) {
+      const result = hljs.highlight(code.textContent || '', { language: language })
+      code.innerHTML = result.value
+      code.classList.add('hljs')
+      pre.classList.add('hljs')
+    }
+    
     pre.style.backgroundColor = '#1a1a2e'
     pre.style.padding = '16px'
     pre.style.borderRadius = '8px'
@@ -226,7 +229,7 @@ const highlightCodeBlocks = () => {
   console.log('Found standalone code elements:', standaloneCodes.length)
   
   standaloneCodes.forEach((code) => {
-    let language = 'plaintext'
+    let language = 'text'
     
     if (code.classList.length > 0) {
       const classArray = Array.from(code.classList)
@@ -237,10 +240,12 @@ const highlightCodeBlocks = () => {
     }
     
     console.log('Processing standalone code, class:', code.className, 'language:', language)
-    const languageName = hljs.getLanguage(language) ? language : 'plaintext'
-    const result = hljs.highlight(code.textContent || '', { language: languageName })
-    code.innerHTML = result.value
-    code.classList.add('hljs')
+    
+    if (hljs.getLanguage(language)) {
+      const result = hljs.highlight(code.textContent || '', { language: language })
+      code.innerHTML = result.value
+      code.classList.add('hljs')
+    }
     
     const pre = document.createElement('pre')
     pre.classList.add('hljs')

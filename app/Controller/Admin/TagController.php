@@ -52,6 +52,8 @@ class TagController
             $data['slug'] = $this->generateSlug((string) $data['name']);
         }
 
+        $data['created_at'] = date('Y-m-d H:i:s');
+
         $tag = Tag::create($data);
 
         return ResponseHelper::success($tag, '创建成功');

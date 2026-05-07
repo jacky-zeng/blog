@@ -16,6 +16,7 @@ class Tag extends Model
     protected array $fillable = [
         'name',
         'slug',
+        'created_at',
     ];
 
     public function articles(): BelongsToMany

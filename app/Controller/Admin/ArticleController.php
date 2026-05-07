@@ -84,9 +84,9 @@ class ArticleController
             return ResponseHelper::error($validator->first());
         }
 
-        if (!isset($data['slug']) || empty($data['slug'])) {
+        //if (!isset($data['slug']) || empty($data['slug'])) {
             $data['slug'] = $this->generateSlug((string) $data['title']);
-        }
+        //}
 
         $data['created_at'] = date('Y-m-d H:i:s');
         $data['updated_at'] = date('Y-m-d H:i:s');
@@ -167,14 +167,32 @@ class ArticleController
 
     private function generateSlug(string $text): string
     {
-        $slug = strtolower(trim(preg_replace('/[^A-Za-z0-9-]+/', '-', $text)));
+        // $slug = strtolower(trim(preg_replace('/[^A-Za-z0-9-]+/', '-', $text)));
 
-        $slug = trim($slug, '-');
+        // $slug = trim($slug, '-');
 
-        if (empty($slug) || $slug === '-' || $slug === '--' || ctype_digit($slug)) {
-            $slug = 'article-' . (string) time();
-        }
+        // if (empty($slug) || $slug === '-' || $slug === '--' || ctype_digit($slug)) {
+        //     $slug = 'article-' . (string) time();
+        // }
 
-        return $slug;
+        // return $slug;
+
+        // 1. 统一标题格式（去空格、转小写、固定编码）
+        $title = trim(mb_strtolower($text, 'UTF-8'));
+        
+        // 2. 生成标题哈希（固定规则：MD5 + 截取前12位）
+        $hash = md5($title);
+        $hashPart = substr($hash, 0, 12);
+        
+        // 3. 自定义混淆盐值（核心规则，修改后生成结果会变）
+        $salt = 'z'.time().'yq';
+        $mixStr = $hashPart . $salt . strlen($title);
+        
+        // 4. 二次哈希 + 只保留数字+字母，截取8位
+
+        //从“qysfjxbpm6391”中随机挑出3个字符
+        $randomChars = substr(str_shuffle('qysfjxbpm6391'), 0, 3);
+
+        return $randomChars.substr(preg_replace('/[^a-z0-9]/', '', md5($mixStr)), 0, 8);
     }
 }
