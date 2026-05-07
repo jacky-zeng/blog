@@ -33,9 +33,10 @@ class CategoryController
             return ResponseHelper::success(unserialize($cachedCategories));
         }
 
-        $categories = Category::whereHas('articles', function ($query) {
-            $query->where('status', 1);
-        })
+        $categories = Category::select(['id', 'name', 'slug'])
+            ->whereHas('articles', function ($query) {
+                $query->where('status', 1);
+            })
             ->withCount(['articles' => function ($query) {
                 $query->where('status', 1);
             }])
@@ -64,7 +65,8 @@ class CategoryController
         $pageSize = (int) $this->request->input('page_size', 10);
 
         $articles = $category->articles()
-            ->with(['category', 'tags'])
+            ->with(['category:id,name,slug', 'tags:id,name,slug'])
+            ->select(['id', 'title', 'slug', 'summary', 'content', 'created_at', 'category_id'])
             ->where('status', 1)
             ->orderBy('created_at', 'desc')
             ->paginate($pageSize, ['*'], 'page', $page);

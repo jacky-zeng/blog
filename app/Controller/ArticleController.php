@@ -42,7 +42,7 @@ class ArticleController
             return ResponseHelper::success(unserialize($cachedArticles));
         }
 
-        $query = Article::with(['category', 'tags'])
+        $query = Article::with(['category:id,name,slug', 'tags:id,name,slug'])
             ->where('status', 1);
 
         if ($categoryId !== null) {
@@ -56,7 +56,7 @@ class ArticleController
         }
 
         $articles = $query->orderBy('created_at', 'desc')
-            ->paginate($pageSize, ['*'], 'page', $page);
+            ->paginate($pageSize, ['id', 'title', 'slug', 'summary', 'content', 'created_at', 'category_id'], 'page', $page);
 
         $articles->getCollection()->transform(function ($article) {
             $article->content = $this->stripHtmlAndTruncate((string) $article->content);
@@ -85,7 +85,8 @@ class ArticleController
         if ($cachedArticle) {
             $article = unserialize($cachedArticle);
         } else {
-            $article = Article::with(['category', 'tags'])
+            $article = Article::with(['category:id,name,slug', 'tags:id,name,slug'])
+                ->select(['id', 'title', 'slug', 'content', 'cover_image', 'created_at', 'category_id', 'view_count'])
                 ->where('status', 1)
                 ->where('slug', $slug)
                 ->first();
@@ -130,7 +131,8 @@ class ArticleController
             return ResponseHelper::error('文章不存在', 404);
         }
 
-        $comments = Comment::where('article_id', $article->id)
+        $comments = Comment::select(['id', 'nickname', 'content', 'created_at'])
+            ->where('article_id', $article->id)
             ->where('status', 1)
             ->orderBy('created_at', 'desc')
             ->get();

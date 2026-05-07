@@ -33,9 +33,10 @@ class TagController
             return ResponseHelper::success(unserialize($cachedTags));
         }
 
-        $tags = Tag::whereHas('articles', function ($query) {
-            $query->where('status', 1);
-        })
+        $tags = Tag::select(['id', 'name', 'slug'])
+            ->whereHas('articles', function ($query) {
+                $query->where('status', 1);
+            })
             ->withCount(['articles' => function ($query) {
                 $query->where('status', 1);
             }])
@@ -63,7 +64,8 @@ class TagController
         $pageSize = (int) $this->request->input('page_size', 10);
 
         $articles = $tag->articles()
-            ->with(['category', 'tags'])
+            ->with(['category:id,name,slug', 'tags:id,name,slug'])
+            ->select(['id', 'title', 'slug', 'summary', 'content', 'created_at', 'category_id'])
             ->where('status', 1)
             ->orderBy('created_at', 'desc')
             ->paginate($pageSize, ['*'], 'page', $page);

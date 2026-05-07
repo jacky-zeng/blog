@@ -33,7 +33,9 @@ class TagController
     #[GetMapping(path: '/api/admin/tags')]
     public function index(): ResponseInterface
     {
-        $tags = Tag::withCount('articles')->get();
+        $tags = Tag::select(['id', 'name', 'slug', 'created_at'])
+            ->withCount('articles')
+            ->get();
 
         return ResponseHelper::success($tags);
     }

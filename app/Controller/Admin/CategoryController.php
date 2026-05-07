@@ -33,7 +33,8 @@ class CategoryController
     #[GetMapping(path: '/api/admin/categories')]
     public function index(): ResponseInterface
     {
-        $categories = Category::withCount('articles')
+        $categories = Category::select(['id', 'name', 'slug', 'sort_order', 'created_at'])
+            ->withCount('articles')
             ->orderBy('sort_order', 'asc')
             ->get();
 

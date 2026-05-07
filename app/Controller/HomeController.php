@@ -121,7 +121,8 @@ class HomeController
             return ResponseHelper::error('请输入搜索关键词');
         }
 
-        $articles = Article::with(['category', 'tags'])
+        $articles = Article::with(['category:id,name,slug', 'tags:id,name,slug'])
+            ->select(['id', 'title', 'slug', 'summary', 'content', 'created_at', 'category_id'])
             ->where('status', 1)
             ->where(function ($query) use ($keyword) {
                 $query->where('title', 'like', '%' . $keyword . '%')

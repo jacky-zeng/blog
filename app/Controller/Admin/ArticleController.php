@@ -40,7 +40,7 @@ class ArticleController
         $categoryId = $this->request->input('category_id');
         $status = $this->request->input('status');
 
-        $query = Article::with(['category', 'tags']);
+        $query = Article::with(['category:id,name,slug', 'tags:id,name,slug']);
 
         if (!empty($keyword)) {
             $query->where('title', 'like', '%' . $keyword . '%');
@@ -55,7 +55,7 @@ class ArticleController
         }
 
         $articles = $query->orderBy('created_at', 'desc')
-            ->paginate($pageSize, ['*'], 'page', $page);
+            ->paginate($pageSize, ['id', 'title', 'slug', 'category_id', 'status', 'view_count', 'created_at'], 'page', $page);
 
         return ResponseHelper::success($articles->toArray());
     }
@@ -63,7 +63,9 @@ class ArticleController
     #[GetMapping(path: '/api/admin/articles/{id}')]
     public function show(int $id): ResponseInterface
     {
-        $article = Article::with(['category', 'tags'])->find($id);
+        $article = Article::with(['category:id,name,slug', 'tags:id,name,slug'])
+            ->select(['id', 'title', 'slug', 'summary', 'content', 'cover_image', 'category_id', 'status', 'view_count', 'created_at', 'updated_at'])
+            ->find($id);
 
         if (!$article) {
             return ResponseHelper::error('文章不存在', 404);

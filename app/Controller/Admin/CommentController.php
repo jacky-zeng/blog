@@ -31,7 +31,8 @@ class CommentController
         $keyword = (string) $this->request->input('keyword', '');
         $status = $this->request->input('status');
 
-        $query = Comment::with(['article', 'parent']);
+        $query = Comment::select(['id', 'nickname', 'content', 'status', 'created_at', 'article_id'])
+            ->with(['article:id,title', 'parent:id,nickname']);
 
         if (!empty($keyword)) {
             $query->where('content', 'like', '%' . $keyword . '%')
