@@ -59,7 +59,12 @@ const routes = [
     children: [
       {
         path: '',
-        name: 'Home',
+        name: 'Main',
+        component: () => import('@/views/front/Main.vue')
+      },
+      {
+        path: 'blog',
+        name: 'Blog',
         component: () => import('@/views/front/Home.vue')
       },
       {

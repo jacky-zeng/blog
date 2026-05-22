@@ -11,8 +11,8 @@
           router
           class="nav-menu"
         >
-          <el-menu-item index="/blog">主页</el-menu-item>
-          <el-menu-item index="/">Blog</el-menu-item>
+          <el-menu-item index="/">主页</el-menu-item>
+          <el-menu-item index="/blog">Blog</el-menu-item>
           <el-menu-item index="/resume">我的简历</el-menu-item>
           <el-menu-item index="/search">搜索</el-menu-item>
           <el-menu-item index="/about">关于</el-menu-item>
@@ -69,12 +69,17 @@ onMounted(() => {
 <style scoped>
 .front-layout {
   min-height: 100vh;
+  background-color: #000;
 }
 
 .header {
-  background-color: #fff;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+  background-color: #000;
   padding: 0 20px;
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  z-index: 999;
 }
 
 .header-content {
@@ -90,7 +95,7 @@ onMounted(() => {
 .logo {
   font-size: 24px;
   font-weight: bold;
-  color: #333;
+  color: #fff;
   cursor: pointer;
 }
 
@@ -98,30 +103,44 @@ onMounted(() => {
   border-bottom: none;
   flex-wrap: nowrap;
   overflow: visible;
+  background-color: #000;
 }
 
 .nav-menu .el-menu-item {
   white-space: nowrap;
   overflow: visible;
   display: inline-block;
+  color: #fff;
+}
+
+.nav-menu .el-menu-item:hover,
+.nav-menu .el-menu-item.is-active {
+  color: #fff;
+  background-color: rgba(255, 255, 255, 0.1);
 }
 
 .main-content {
   max-width: 1200px;
   margin: 0 auto;
-  padding: 20px;
-  background-color: #f5f7fa;
+  padding: 80px 20px 20px;
+  background-color: #000;
 }
 
 .footer {
-  background-color: #333;
+  background-color: #000;
   color: #fff;
   text-align: center;
   padding: 30px 0;
 }
 
+.footer-content {
+  border-top: solid 1px #333333;
+  background-color: #000;
+  color: #fff;
+}
+
 .footer-content p {
   margin: 5px 0;
-  color: #999;
+  color: #333;
 }
 </style>

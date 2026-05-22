@@ -1,5 +1,8 @@
 <template>
-  <router-view />
+  <div class="app-container">
+    <div class="global-bg"></div>
+    <router-view />
+  </div>
 </template>
 
 <script setup>
@@ -14,5 +17,29 @@
 
 body {
   font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+}
+
+.app-container {
+  position: relative;
+  min-height: 100vh;
+}
+
+.global-bg {
+  position: fixed;
+  top: 0;
+  right: 0;
+  width: 800px;
+  height: 800px;
+  background-image: url('/storage/bg/bg.png');
+  background-size: contain;
+  background-repeat: no-repeat;
+  background-position: top right;
+  z-index: 0;
+  pointer-events: none;
+}
+
+.router-view {
+  position: relative;
+  z-index: 1;
 }
 </style>
