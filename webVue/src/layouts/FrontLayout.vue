@@ -11,7 +11,10 @@
           router
           class="nav-menu"
         >
-          <el-menu-item index="/">首页</el-menu-item>
+          <el-menu-item index="/blog">主页</el-menu-item>
+          <el-menu-item index="/">Blog</el-menu-item>
+          <el-menu-item index="/resume">我的简历</el-menu-item>
+          <el-menu-item index="/search">搜索</el-menu-item>
           <el-menu-item index="/about">关于</el-menu-item>
         </el-menu>
       </div>
@@ -78,9 +81,10 @@ onMounted(() => {
   max-width: 1200px;
   margin: 0 auto;
   display: flex;
-  justify-content: space-between;
+  justify-content: flex-start;
   align-items: center;
   height: 60px;
+  gap: 30px;
 }
 
 .logo {
@@ -92,6 +96,14 @@ onMounted(() => {
 
 .nav-menu {
   border-bottom: none;
+  flex-wrap: nowrap;
+  overflow: visible;
+}
+
+.nav-menu .el-menu-item {
+  white-space: nowrap;
+  overflow: visible;
+  display: inline-block;
 }
 
 .main-content {

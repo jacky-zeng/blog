@@ -22,7 +22,8 @@ class StorageController
     #[GetMapping(path: '/storage/{path:.+}')]
     public function serve(string $path)
     {
-        $filePath = BASE_PATH . '/public/storage/' . $path;
+        $decodedPath = urldecode($path);
+        $filePath = BASE_PATH . '/public/storage/' . $decodedPath;
 
         if (!file_exists($filePath)) {
             return $this->response->json([

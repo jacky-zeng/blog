@@ -63,8 +63,8 @@
         
         <el-form-item label="状态">
           <el-radio-group v-model="form.status">
-            <el-radio :label="0">草稿</el-radio>
-            <el-radio :label="1">发布</el-radio>
+            <el-radio :value="0">草稿</el-radio>
+            <el-radio :value="1">发布</el-radio>
           </el-radio-group>
         </el-form-item>
         
@@ -226,6 +226,38 @@ const beforeUpload = (file) => {
   return true
 }
 
+const customImageUploader = async (file, uploadUrl, headers, formName) => {
+  const formData = new FormData()
+  formData.append(formName, file)
+  
+  const response = await fetch(uploadUrl, {
+    method: 'POST',
+    headers: {
+      ...headers,
+      'Authorization': `Bearer ${localStorage.getItem('token') || ''}`
+    },
+    body: formData
+  })
+  
+  const result = await response.json()
+  
+  if (result && result.code === 200 && result.data && result.data.url) {
+    //const baseUrl = window.location.origin
+    //const fullUrl = result.data.url.startsWith('http') ? result.data.url : baseUrl + result.data.url
+    return { 
+      errorCode: 0,
+      data: {
+        src: result.data.url
+      }
+    }
+  }
+  
+  return {
+    errorCode: -1,
+    message: '上传失败'
+  }
+}
+
 onMounted(() => {
   loadCategories()
   loadTags()
@@ -234,7 +266,13 @@ onMounted(() => {
     element: editorRef.value,
     placeholder: '请输入文章内容...',
     content: form.value.content || '',
-    toolbarExcludeKeys: ["ai"]
+    toolbarExcludeKeys: ["ai"],
+    image: {
+      uploadUrl: '/api/upload',
+      uploadFormName: 'file',
+      allowBase64: false,
+      uploader: customImageUploader
+    }
   })
   
   if (isEdit.value) {
