@@ -84,6 +84,18 @@ onMounted(() => {
 <style scoped>
 .category-page {
   padding: 20px;
+  background-color: #f5f5f5;
+  min-height: calc(100vh - 60px);
+  position: absolute;
+  top: 60px;
+  left: 0;
+  right: 0;
+  bottom: 0;
+}
+
+.el-card {
+  border-radius: 8px;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
 }
 
 .card-header {
@@ -91,6 +103,8 @@ onMounted(() => {
   justify-content: space-between;
   align-items: center;
   font-weight: bold;
+  font-size: 16px;
+  color: #333;
 }
 
 .article-item {
@@ -104,22 +118,23 @@ onMounted(() => {
 
 .article-title {
   font-size: 20px;
-  margin: 0 0 10px 0;
+  margin: 0 0 12px 0;
   cursor: pointer;
   color: #333;
   transition: color 0.3s;
+  font-weight: 600;
 }
 
 .article-title:hover {
-  color: #409EFF;
+  color: #ff6600;
 }
 
 .article-meta {
   display: flex;
   align-items: center;
   gap: 15px;
-  margin-bottom: 10px;
-  color: #909399;
+  margin-bottom: 12px;
+  color: #999;
   font-size: 14px;
 }
 
@@ -131,6 +146,14 @@ onMounted(() => {
 
 .article-summary {
   color: #666;
-  line-height: 1.6;
+  line-height: 1.8;
+  font-size: 14px;
+}
+
+:deep(.el-tag) {
+  border-radius: 4px;
+  background-color: #fff8f0;
+  border-color: #ffd5b3;
+  color: #ff6600;
 }
 </style>

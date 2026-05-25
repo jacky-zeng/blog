@@ -1,11 +1,16 @@
 <template>
   <div class="app-container">
-    <div class="global-bg"></div>
+    <div class="global-bg" v-if="isHomePage"></div>
     <router-view />
   </div>
 </template>
 
 <script setup>
+import { computed } from 'vue'
+import { useRoute } from 'vue-router'
+
+const route = useRoute()
+const isHomePage = computed(() => route.path === '/')
 </script>
 
 <style>

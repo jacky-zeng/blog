@@ -1,6 +1,22 @@
 <template>
   <div class="article-detail-page">
     <el-row :gutter="20">
+      <el-col :span="6">
+        <div class="sidebar-sticky">
+          <el-card class="sidebar-card">
+            <template #header>
+              <span>相关文章</span>
+            </template>
+            <div v-if="relatedArticles.length > 0">
+              <div v-for="art in relatedArticles" :key="art.id" class="related-article" @click="$router.push(`/article/${art.slug}`)">
+                {{ art.title }}
+              </div>
+            </div>
+            <el-empty v-else description="暂无相关文章" :image-size="60" />
+          </el-card>
+        </div>
+      </el-col>
+
       <el-col :span="18">
         <el-card v-if="article" class="article-card">
           <h1 class="article-title">{{ article.title }}</h1>
@@ -62,20 +78,6 @@
           </div>
         </el-card>
         <el-empty v-else description="文章不存在" />
-      </el-col>
-
-      <el-col :span="6">
-        <el-card class="sidebar-card">
-          <template #header>
-            <span>相关文章</span>
-          </template>
-          <div v-if="relatedArticles.length > 0">
-            <div v-for="art in relatedArticles" :key="art.id" class="related-article" @click="$router.push(`/article/${art.slug}`)">
-              {{ art.title }}
-            </div>
-          </div>
-          <el-empty v-else description="暂无相关文章" :image-size="60" />
-        </el-card>
       </el-col>
     </el-row>
   </div>
@@ -341,16 +343,26 @@ watch(() => route.params.slug, () => {
 <style scoped>
 .article-detail-page {
   padding: 20px;
+  background-color: #f5f5f5;
+  min-height: calc(100vh - 60px);
+  position: absolute;
+  top: 60px;
+  left: 0;
+  right: 0;
+  bottom: 0;
 }
 
 .article-card {
   margin-bottom: 20px;
+  border-radius: 8px;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
 }
 
 .article-title {
   font-size: 28px;
   margin: 0 0 20px 0;
   color: #333;
+  font-weight: 600;
 }
 
 .article-meta {
@@ -358,7 +370,7 @@ watch(() => route.params.slug, () => {
   align-items: center;
   gap: 15px;
   margin-bottom: 20px;
-  color: #909399;
+  color: #999;
   font-size: 14px;
   padding-bottom: 20px;
   border-bottom: 1px solid #f0f0f0;
@@ -413,13 +425,11 @@ watch(() => route.params.slug, () => {
   background-color: #f5f7fa;
 }
 
-
-
 .article-content :deep(blockquote) {
-  border-left: 4px solid #409EFF;
+  border-left: 4px solid #ff6600;
   padding: 12px 16px;
   margin: 16px 0;
-  background-color: #f5f7fa;
+  background-color: #fff8f0;
   color: #666;
   font-style: italic;
 }
@@ -457,7 +467,7 @@ watch(() => route.params.slug, () => {
 }
 
 .article-content :deep(a) {
-  color: #409EFF;
+  color: #ff6600;
   text-decoration: none;
 }
 
@@ -488,7 +498,7 @@ watch(() => route.params.slug, () => {
   border: 1px solid #f0f0f0;
   border-radius: 8px;
   margin-bottom: 15px;
-  background-color: #fafafa;
+  background-color: #fff;
 }
 
 .comment-header {
@@ -515,31 +525,51 @@ watch(() => route.params.slug, () => {
 .comment-form {
   margin-top: 20px;
   padding: 20px;
-  background-color: #f5f7fa;
+  background-color: #fff;
   border-radius: 8px;
+  border: 1px solid #f0f0f0;
 }
 
 .comment-disabled {
   margin-top: 20px;
 }
 
+.sidebar-sticky {
+  position: sticky;
+  top: 80px;
+}
+
 .sidebar-card {
   margin-bottom: 20px;
+  border-radius: 8px;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
 }
 
 .related-article {
-  padding: 10px 0;
+  padding: 12px 0;
   cursor: pointer;
   border-bottom: 1px solid #f0f0f0;
   transition: all 0.3s;
+  color: #333;
 }
 
 .related-article:hover {
-  color: #409EFF;
+  color: #ff6600;
   padding-left: 10px;
+  background-color: #fff8f0;
 }
 
 .related-article:last-child {
   border-bottom: none;
+}
+
+:deep(.article-card .el-tag) {
+  background-color: #fff8f0;
+  border-color: #ffd5b3;
+  color: #ff6600;
+}
+
+:deep(.el-tag) {
+  border-radius: 4px;
 }
 </style>
