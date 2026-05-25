@@ -149,7 +149,7 @@ onMounted(() => {
 <style scoped>
 .home-page {
   padding: 20px;
-  background-color: #f5f5f5;
+  background-color: #ffffff;
   min-height: calc(100vh - 60px);
   position: absolute;
   top: 60px;

@@ -22,7 +22,10 @@
     <el-main class="main-content">
       <router-view />
     </el-main>
-    <el-footer class="footer">
+    <el-footer 
+      v-if="route.path === '/'"
+      class="footer"
+    >
       <div class="footer-content">
         <p>{{ siteInfo.site_name }} - {{ siteInfo.site_subtitle }}</p>
         <p v-if="siteInfo.icp">备案号：{{ siteInfo.icp }}</p>
