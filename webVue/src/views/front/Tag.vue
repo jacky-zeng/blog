@@ -20,7 +20,7 @@
               {{ formatDate(article.created_at) }}
             </span>
           </div>
-          <p class="article-summary">{{ article.summary || article.content.substring(0, 200) + '...' }}</p>
+          <p class="article-summary">{{ article.summary || article.content }}</p>
         </div>
       </div>
       <el-empty v-else description="该标签下暂无文章" />

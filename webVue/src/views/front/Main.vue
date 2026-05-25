@@ -75,17 +75,17 @@ onUnmounted(() => {
 
 <style scoped>
 .main-page {
-  min-height: 100vh;
+  height: 70vh;
   background-color: #000;
   display: flex;
   justify-content: center;
   align-items: center;
   position: relative;
+  overflow: hidden;
 }
 
 .content {
   text-align: center;
-  margin-bottom: 200px;
 }
 
 .subtitle {

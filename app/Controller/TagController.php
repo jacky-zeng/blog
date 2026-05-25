@@ -70,9 +70,27 @@ class TagController
             ->orderBy('created_at', 'desc')
             ->paginate($pageSize, ['*'], 'page', $page);
 
+        $articles->getCollection()->transform(function ($article) {
+            $article->content = $this->stripHtmlAndTruncate((string) $article->content);
+            return $article;
+        });
+
         return ResponseHelper::success([
             'tag' => $tag,
             'articles' => $articles->toArray(),
         ]);
+    }
+
+    private function stripHtmlAndTruncate(string $content, int $length = 500): string
+    {
+        $content = strip_tags($content);
+        $content = preg_replace('/\s+/', ' ', $content);
+        $content = trim($content);
+        
+        if (mb_strlen($content) > $length) {
+            return mb_substr($content, 0, $length) . '...';
+        }
+        
+        return $content;
     }
 }

@@ -14,6 +14,18 @@
             </div>
             <el-empty v-else description="暂无相关文章" :image-size="60" />
           </el-card>
+
+          <el-card class="sidebar-card" style="margin-top: 20px;">
+            <template #header>
+              <span>文章目录</span>
+            </template>
+            <div v-if="headings.length > 0" class="anchor-menu">
+              <div v-for="(heading, index) in headings" :key="index" class="anchor-item" @click="scrollToHeading(index)">
+                {{ heading }}
+              </div>
+            </div>
+            <el-empty v-else description="暂无目录" :image-size="60" />
+          </el-card>
         </div>
       </el-col>
 
@@ -134,6 +146,7 @@ const relatedArticles = ref([])
 const commentEnabled = ref(false)
 const commentLoading = ref(false)
 const commentFormRef = ref(null)
+const headings = ref([])
 
 const commentForm = ref({
   nickname: '',
@@ -161,10 +174,38 @@ const loadArticle = async () => {
       article.value = res.data
       setTimeout(() => {
         highlightCodeBlocks()
+        extractHeadings()
       }, 100)
     }
   } catch (error) {
     ElMessage.error('加载文章失败')
+  }
+}
+
+const extractHeadings = () => {
+  const articleContent = document.querySelector('.article-content')
+  if (!articleContent) {
+    return
+  }
+  
+  const h2Elements = articleContent.querySelectorAll('h2')
+  headings.value = Array.from(h2Elements).map((h2, index) => {
+    h2.id = `heading-${index}`
+    return h2.textContent || h2.innerText
+  })
+}
+
+const scrollToHeading = (index) => {
+  const headingElement = document.getElementById(`heading-${index}`)
+  if (headingElement) {
+    const offset = 80
+    const elementPosition = headingElement.getBoundingClientRect().top
+    const offsetPosition = elementPosition + window.pageYOffset - offset
+    
+    window.scrollTo({
+      top: offsetPosition,
+      behavior: 'smooth'
+    })
   }
 }
 
@@ -546,11 +587,15 @@ watch(() => route.params.slug, () => {
 }
 
 .related-article {
-  padding: 12px 0;
+  padding: 8px 0;
   cursor: pointer;
   border-bottom: 1px solid #f0f0f0;
   transition: all 0.3s;
   color: #333;
+  font-size: 14px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 
 .related-article:hover {
@@ -560,6 +605,32 @@ watch(() => route.params.slug, () => {
 }
 
 .related-article:last-child {
+  border-bottom: none;
+}
+
+.anchor-menu {
+  padding: 8px 0;
+}
+
+.anchor-item {
+  padding: 8px 0;
+  cursor: pointer;
+  border-bottom: 1px solid #f0f0f0;
+  transition: all 0.3s;
+  color: #333;
+  font-size: 14px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.anchor-item:hover {
+  color: #ff6600;
+  padding-left: 10px;
+  background-color: #fff8f0;
+}
+
+.anchor-item:last-child {
   border-bottom: none;
 }
 
