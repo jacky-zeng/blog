@@ -282,4 +282,9 @@ onMounted(() => {
   border-color: #ffd5b3;
   color: #ff6600;
 }
+
+:deep(.category-count .el-badge__content) {
+  background-color: #69c0ff !important;
+  color: #ffffff !important;
+}
 </style>

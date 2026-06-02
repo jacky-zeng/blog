@@ -152,8 +152,8 @@ onMounted(() => {
 
 :deep(.el-tag) {
   border-radius: 4px;
-  background-color: #fff8f0;
-  border-color: #ffd5b3;
-  color: #ff6600;
+  background-color: #1890ff;
+  border-color: #1890ff;
+  color: #ffffff;
 }
 </style>

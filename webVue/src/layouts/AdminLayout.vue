@@ -54,6 +54,7 @@
               </span>
               <template #dropdown>
                 <el-dropdown-menu>
+                  <el-dropdown-item command="changePassword">修改密码</el-dropdown-item>
                   <el-dropdown-item command="logout">退出登录</el-dropdown-item>
                 </el-dropdown-menu>
               </template>
@@ -65,11 +66,29 @@
         <router-view />
       </el-main>
     </el-container>
+
+    <el-dialog v-model="passwordDialogVisible" title="修改密码" width="400px">
+      <el-form :model="passwordForm" :rules="passwordRules" ref="passwordFormRef" label-width="100px">
+        <el-form-item label="原密码" prop="oldPassword">
+          <el-input v-model="passwordForm.oldPassword" type="password" placeholder="请输入原密码" show-password />
+        </el-form-item>
+        <el-form-item label="新密码" prop="newPassword">
+          <el-input v-model="passwordForm.newPassword" type="password" placeholder="请输入新密码" show-password />
+        </el-form-item>
+        <el-form-item label="确认密码" prop="confirmPassword">
+          <el-input v-model="passwordForm.confirmPassword" type="password" placeholder="请再次输入新密码" show-password />
+        </el-form-item>
+      </el-form>
+      <template #footer>
+        <el-button @click="passwordDialogVisible = false">取消</el-button>
+        <el-button type="primary" @click="handleChangePassword">确定</el-button>
+      </template>
+    </el-dialog>
   </el-container>
 </template>
 
 <script setup>
-import { computed } from 'vue'
+import { ref, reactive, computed } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { ElMessage, ElMessageBox } from 'element-plus'
 import { useUserStore } from '@/stores/user'
@@ -78,6 +97,37 @@ import request from '@/utils/request'
 const route = useRoute()
 const router = useRouter()
 const userStore = useUserStore()
+
+const passwordDialogVisible = ref(false)
+const passwordFormRef = ref(null)
+const passwordForm = reactive({
+  oldPassword: '',
+  newPassword: '',
+  confirmPassword: ''
+})
+
+const validateConfirmPassword = (rule, value, callback) => {
+  if (value === '') {
+    callback(new Error('请再次输入新密码'))
+  } else if (value !== passwordForm.newPassword) {
+    callback(new Error('两次输入的新密码不一致'))
+  } else {
+    callback()
+  }
+}
+
+const passwordRules = {
+  oldPassword: [
+    { required: true, message: '请输入原密码', trigger: 'blur' }
+  ],
+  newPassword: [
+    { required: true, message: '请输入新密码', trigger: 'blur' },
+    { min: 6, message: '新密码长度不能少于6位', trigger: 'blur' }
+  ],
+  confirmPassword: [
+    { required: true, validator: validateConfirmPassword, trigger: 'blur' }
+  ]
+}
 
 const activeMenu = computed(() => route.path)
 const currentPage = computed(() => {
@@ -109,7 +159,32 @@ const handleCommand = async (command) => {
         ElMessage.error('退出失败')
       }
     }
+  } else if (command === 'changePassword') {
+    passwordDialogVisible.value = true
+    passwordForm.oldPassword = ''
+    passwordForm.newPassword = ''
+    passwordForm.confirmPassword = ''
   }
+}
+
+const handleChangePassword = async () => {
+  if (!passwordFormRef.value) return
+  
+  await passwordFormRef.value.validate(async (valid) => {
+    if (valid) {
+      try {
+        await request.post('/admin/change-password', {
+          old_password: passwordForm.oldPassword,
+          new_password: passwordForm.newPassword,
+          confirm_password: passwordForm.confirmPassword
+        })
+        ElMessage.success('密码修改成功')
+        passwordDialogVisible.value = false
+      } catch (error) {
+        ElMessage.error(error.message || '密码修改失败')
+      }
+    }
+  })
 }
 </script>
 

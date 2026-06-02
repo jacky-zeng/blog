@@ -100,6 +100,50 @@ class AuthController
         ]);
     }
 
+    #[PostMapping(path: '/api/admin/change-password')]
+    public function changePassword(): ResponseInterface
+    {
+        $token = $this->request->getHeaderLine('Authorization');
+        $token = str_replace('Bearer ', '', $token);
+
+        $userId = $this->redis->get('auth:token:' . $token);
+
+        if (!$userId) {
+            return ResponseHelper::error('Token无效', 401);
+        }
+
+        $user = User::find((int) $userId);
+
+        if (!$user) {
+            return ResponseHelper::error('用户不存在', 401);
+        }
+
+        $oldPassword = (string) $this->request->input('old_password');
+        $newPassword = (string) $this->request->input('new_password');
+        $confirmPassword = (string) $this->request->input('confirm_password');
+
+        if (!$oldPassword || !$newPassword || !$confirmPassword) {
+            return ResponseHelper::error('请填写完整信息');
+        }
+
+        if (!password_verify($oldPassword, $user->password)) {
+            return ResponseHelper::error('原密码错误');
+        }
+
+        if ($newPassword !== $confirmPassword) {
+            return ResponseHelper::error('两次输入的新密码不一致');
+        }
+
+        if (strlen($newPassword) < 6) {
+            return ResponseHelper::error('新密码长度不能少于6位');
+        }
+
+        $user->password = password_hash($newPassword, PASSWORD_DEFAULT);
+        $user->save();
+
+        return ResponseHelper::success(null, '密码修改成功');
+    }
+
     private function generateToken(): string
     {
         return md5(uniqid('blog_', true) . time());
