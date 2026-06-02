@@ -41,9 +41,16 @@ class SiteCacheKey
         return "settings:list";
     }
     
-    public static function articlesList(int $page, int $pageSize): string
+    public static function articlesList(int $page, int $pageSize, $categoryId = null, $tagId = null): string
     {
-        return "articles:list:{$page}:{$pageSize}";
+        $key = "articles:list:{$page}:{$pageSize}";
+        if ($categoryId !== null) {
+            $key .= ":category:{$categoryId}";
+        }
+        if ($tagId !== null) {
+            $key .= ":tag:{$tagId}";
+        }
+        return $key;
     }
     
     public static function articlesListPrefix(): string

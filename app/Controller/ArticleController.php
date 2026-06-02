@@ -35,7 +35,7 @@ class ArticleController
         $categoryId = $this->request->input('category_id');
         $tagId = $this->request->input('tag_id');
 
-        $cacheKey = SiteCacheKey::articlesList($page, $pageSize);
+        $cacheKey = SiteCacheKey::articlesList($page, $pageSize, $categoryId, $tagId);
         
         $cachedArticles = $this->cache->get($cacheKey);
         if ($cachedArticles && $page <= 5) {
@@ -101,7 +101,7 @@ class ArticleController
         $article->increment('view_count');
 
         $this->recordView($article->id);
-
+        unset($article['id']);
         return ResponseHelper::success($article);
     }
 

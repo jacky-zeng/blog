@@ -8,7 +8,7 @@
               <span>相关文章</span>
             </template>
             <div v-if="relatedArticles.length > 0">
-              <div v-for="art in relatedArticles" :key="art.id" class="related-article" @click="$router.push(`/article/${art.slug}`)">
+              <div v-for="art in relatedArticles" :key="art.slug" class="related-article" @click="$router.push(`/article/${art.slug}`)">
                 {{ art.title }}
               </div>
             </div>
@@ -54,40 +54,39 @@
             </el-tag>
           </div>
 
-          <el-divider>评论区</el-divider>
+          <template v-if="commentEnabled">
+            <el-divider>评论区</el-divider>
 
-          <div class="comments-section">
-            <div v-if="comments.length > 0">
-              <div v-for="comment in comments" :key="comment.id" class="comment-item">
-                <div class="comment-header">
-                  <span class="comment-author">{{ comment.nickname }}</span>
-                  <span class="comment-time">{{ formatDate(comment.created_at) }}</span>
+            <div class="comments-section">
+              <div v-if="comments.length > 0">
+                <div v-for="comment in comments" :key="comment.id" class="comment-item">
+                  <div class="comment-header">
+                    <span class="comment-author">{{ comment.nickname }}</span>
+                    <span class="comment-time">{{ formatDate(comment.created_at) }}</span>
+                  </div>
+                  <div class="comment-content">{{ comment.content }}</div>
                 </div>
-                <div class="comment-content">{{ comment.content }}</div>
               </div>
-            </div>
-            <el-empty v-else description="暂无评论" />
+              <el-empty v-else description="暂无评论" />
 
-            <el-form v-if="commentEnabled" :model="commentForm" :rules="commentRules" ref="commentFormRef" class="comment-form">
-              <el-form-item prop="nickname">
-                <el-input v-model="commentForm.nickname" placeholder="昵称" />
-              </el-form-item>
-              <el-form-item prop="email">
-                <el-input v-model="commentForm.email" placeholder="邮箱" />
-              </el-form-item>
-              <el-form-item prop="content">
-                <el-input v-model="commentForm.content" type="textarea" :rows="4" placeholder="发表评论..." />
-              </el-form-item>
-              <el-form-item>
-                <el-button type="primary" @click="handleSubmitComment" :loading="commentLoading">
-                  提交评论
-                </el-button>
-              </el-form-item>
-            </el-form>
-            <div v-else class="comment-disabled">
-              <el-alert title="评论已关闭" type="info" :closable="false" />
+              <el-form :model="commentForm" :rules="commentRules" ref="commentFormRef" class="comment-form">
+                <el-form-item prop="nickname">
+                  <el-input v-model="commentForm.nickname" placeholder="昵称" />
+                </el-form-item>
+                <el-form-item prop="email">
+                  <el-input v-model="commentForm.email" placeholder="邮箱" />
+                </el-form-item>
+                <el-form-item prop="content">
+                  <el-input v-model="commentForm.content" type="textarea" :rows="4" placeholder="发表评论..." />
+                </el-form-item>
+                <el-form-item>
+                  <el-button type="primary" @click="handleSubmitComment" :loading="commentLoading">
+                    提交评论
+                  </el-button>
+                </el-form-item>
+              </el-form>
             </div>
-          </div>
+          </template>
         </el-card>
         <el-empty v-else description="文章不存在" />
       </el-col>
@@ -176,6 +175,7 @@ const loadArticle = async () => {
         highlightCodeBlocks()
         extractHeadings()
       }, 100)
+      await loadRelatedArticles()
     }
   } catch (error) {
     ElMessage.error('加载文章失败')
@@ -314,12 +314,12 @@ const loadRelatedArticles = async () => {
   try {
     const res = await request.get('/articles', {
       params: {
-        category_id: article.value?.category_id,
+        category_id: article.value?.category?.id,
         page_size: 5
       }
     })
     if (res.code === 200) {
-      relatedArticles.value = res.data.data.filter(a => a.id !== article.value?.id)
+      relatedArticles.value = res.data.data.filter(a => a.slug !== article.value?.slug)
     }
   } catch (error) {
     console.error('加载相关文章失败')
@@ -331,6 +331,9 @@ const loadSettings = async () => {
     const res = await request.get('/settings')
     if (res.code === 200) {
       commentEnabled.value = parseInt(res.data.comment_enabled) === 1
+      if (commentEnabled.value) {
+        await loadComments()
+      }
     }
   } catch (error) {
     console.error('加载设置失败')
@@ -366,8 +369,6 @@ const formatDate = (dateStr) => {
 
 onMounted(() => {
   loadArticle()
-  loadComments()
-  loadRelatedArticles()
   loadSettings()
 })
 
@@ -375,9 +376,10 @@ watch(() => route.params.slug, () => {
   article.value = null
   comments.value = []
   relatedArticles.value = []
+  article.value = null
+  commentEnabled.value = false
   loadArticle()
-  loadComments()
-  loadRelatedArticles()
+  loadSettings()
 })
 </script>
 

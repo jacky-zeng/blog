@@ -51,6 +51,16 @@ class CategoryController
     #[GetMapping(path: '/api/category/{slug}')]
     public function show(string $slug): ResponseInterface
     {
+        $page = (int) $this->request->input('page', 1);
+        $pageSize = (int) $this->request->input('page_size', 10);
+
+        $cacheKey = "category:articles:{$slug}:{$page}:{$pageSize}";
+        
+        $cachedData = $this->cache->get($cacheKey);
+        if ($cachedData) {
+            return ResponseHelper::success(unserialize($cachedData));
+        }
+
         $category = Category::where('slug', $slug)
             ->withCount(['articles' => function ($query) {
                 $query->where('status', 1);
@@ -60,9 +70,6 @@ class CategoryController
         if (!$category) {
             return ResponseHelper::error('分类不存在', 404);
         }
-
-        $page = (int) $this->request->input('page', 1);
-        $pageSize = (int) $this->request->input('page_size', 10);
 
         $articles = $category->articles()
             ->with(['category:id,name,slug', 'tags:id,name,slug'])
@@ -76,10 +83,14 @@ class CategoryController
             return $article;
         });
 
-        return ResponseHelper::success([
+        $result = [
             'category' => $category,
             'articles' => $articles->toArray(),
-        ]);
+        ];
+
+        $this->cache->set($cacheKey, serialize($result), 600);
+
+        return ResponseHelper::success($result);
     }
 
     private function stripHtmlAndTruncate(string $content, int $length = 500): string

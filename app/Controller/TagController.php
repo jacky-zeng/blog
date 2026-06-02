@@ -50,6 +50,16 @@ class TagController
     #[GetMapping(path: '/api/tag/{slug}')]
     public function show(string $slug): ResponseInterface
     {
+        $page = (int) $this->request->input('page', 1);
+        $pageSize = (int) $this->request->input('page_size', 10);
+
+        $cacheKey = "tag:articles:{$slug}:{$page}:{$pageSize}";
+        
+        $cachedData = $this->cache->get($cacheKey);
+        if ($cachedData) {
+            return ResponseHelper::success(unserialize($cachedData));
+        }
+
         $tag = Tag::where('slug', $slug)
             ->withCount(['articles' => function ($query) {
                 $query->where('status', 1);
@@ -59,9 +69,6 @@ class TagController
         if (!$tag) {
             return ResponseHelper::error('标签不存在', 404);
         }
-
-        $page = (int) $this->request->input('page', 1);
-        $pageSize = (int) $this->request->input('page_size', 10);
 
         $articles = $tag->articles()
             ->with(['category:id,name,slug', 'tags:id,name,slug'])
@@ -75,10 +82,14 @@ class TagController
             return $article;
         });
 
-        return ResponseHelper::success([
+        $result = [
             'tag' => $tag,
             'articles' => $articles->toArray(),
-        ]);
+        ];
+
+        $this->cache->set($cacheKey, serialize($result), 600);
+
+        return ResponseHelper::success($result);
     }
 
     private function stripHtmlAndTruncate(string $content, int $length = 500): string
