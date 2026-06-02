@@ -53,6 +53,11 @@ class TagController
         $page = (int) $this->request->input('page', 1);
         $pageSize = (int) $this->request->input('page_size', 10);
 
+        $page = max(1, min($page, 10));
+        if (!in_array($pageSize, [5, 10])) {
+            $pageSize = 10;
+        }
+
         $cacheKey = "tag:articles:{$slug}:{$page}:{$pageSize}";
         
         $cachedData = $this->cache->get($cacheKey);
@@ -72,7 +77,7 @@ class TagController
 
         $articles = $tag->articles()
             ->with(['category:id,name,slug', 'tags:id,name,slug'])
-            ->select(['id', 'title', 'slug', 'summary', 'content', 'created_at', 'category_id'])
+            ->select(['title', 'slug', 'summary', 'content', 'created_at', 'category_id'])
             ->where('status', 1)
             ->orderBy('created_at', 'desc')
             ->paginate($pageSize, ['*'], 'page', $page);

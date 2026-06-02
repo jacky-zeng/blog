@@ -35,6 +35,11 @@ class ArticleController
         $categoryId = $this->request->input('category_id');
         $tagId = $this->request->input('tag_id');
 
+        $page = max(1, min($page, 10));
+        if (!in_array($pageSize, [5, 10])) {
+            $pageSize = 10;
+        }
+
         $cacheKey = SiteCacheKey::articlesList($page, $pageSize, $categoryId, $tagId);
         
         $cachedArticles = $this->cache->get($cacheKey);
@@ -56,7 +61,7 @@ class ArticleController
         }
 
         $articles = $query->orderBy('created_at', 'desc')
-            ->paginate($pageSize, ['id', 'title', 'slug', 'summary', 'content', 'created_at', 'category_id'], 'page', $page);
+            ->paginate($pageSize, ['title', 'slug', 'summary', 'content', 'created_at', 'category_id'], 'page', $page);
 
         $articles->getCollection()->transform(function ($article) {
             $article->content = $this->stripHtmlAndTruncate((string) $article->content);
