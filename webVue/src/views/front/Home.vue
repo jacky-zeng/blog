@@ -1,7 +1,7 @@
 <template>
   <div class="home-page">
     <el-row :gutter="20">
-      <el-col :span="6">
+      <el-col :span="6" v-if="!isMobile">
         <div class="sidebar-sticky">
           <el-card class="sidebar-card">
             <template #header>
@@ -30,13 +30,25 @@
         </div>
       </el-col>
 
-      <el-col :span="18">
+      <el-col :span="isMobile ? 24 : 18">
         <el-card class="articles-card">
           <template #header>
             <div class="card-header">
               <span>最新文章</span>
             </div>
           </template>
+          
+          <div v-if="isMobile && categories.length > 0" class="mobile-categories">
+            <el-tag 
+              v-for="cat in categories" 
+              :key="cat.id" 
+              size="small" 
+              @click="$router.push(`/category/${cat.slug}`)"
+              class="mobile-category-tag"
+            >
+              {{ cat.name }} ({{ cat.articles_count }})
+            </el-tag>
+          </div>
           
           <div v-if="articles.length > 0">
             <div v-for="article in articles" :key="article.id" class="article-item">
@@ -87,6 +99,7 @@ const router = useRouter()
 const articles = ref([])
 const categories = ref([])
 const tags = ref([])
+const isMobile = ref(false)
 const currentPage = ref(1)
 const pageSize = ref(10)
 const total = ref(0)
@@ -143,6 +156,7 @@ onMounted(() => {
   loadArticles()
   loadCategories()
   loadTags()
+  isMobile.value = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent)
 })
 </script>
 
@@ -156,6 +170,12 @@ onMounted(() => {
   left: 0;
   right: 0;
   bottom: 0;
+}
+
+@media (max-width: 768px) {
+  .home-page {
+    padding: 0px;
+  }
 }
 
 .articles-card {

@@ -95,6 +95,8 @@ class ArticleController
                 return ResponseHelper::error('文章不存在', 404);
             }
             
+            $article->content = $this->processImagesForLazyLoad((string) $article->content);
+            
             $this->cache->set($cacheKey, serialize($article), 7200);
         }
 
@@ -103,6 +105,21 @@ class ArticleController
         $this->recordView($article->id);
         unset($article['id']);
         return ResponseHelper::success($article);
+    }
+
+    private function processImagesForLazyLoad(string $content): string
+    {
+        $loadingGif = '/images/loading.gif';
+        
+        return preg_replace_callback(
+            '/<img\s+([^>]*?)src\s*=\s*["\']([^"\']+)["\']([^>]*)>/i',
+            function ($matches) use ($loadingGif) {
+                $src = $matches[2];
+                $otherAttrs = $matches[1] . $matches[3];
+                return "<img {$otherAttrs} data-src=\"{$src}\" src=\"{$loadingGif}\" />";
+            },
+            $content
+        );
     }
 
     #[GetMapping(path: '/api/articles/{slug}/comments')]

@@ -2,7 +2,7 @@
   <el-container class="front-layout">
     <el-header class="header">
       <div class="header-content">
-        <div class="logo" @click="$router.push('/')">
+        <div class="logo" v-if="!isMobile" @click="$router.push('/')">
           {{ siteInfo.site_name }}
         </div>
         <el-menu
@@ -15,7 +15,7 @@
           <el-menu-item index="/blog">Blog</el-menu-item>
           <el-menu-item index="/resume">我的简历</el-menu-item>
           <el-menu-item index="/search">搜索</el-menu-item>
-          <el-menu-item index="/about">关于</el-menu-item>
+          <el-menu-item index="/">关于</el-menu-item>
         </el-menu>
       </div>
     </el-header>
@@ -43,6 +43,7 @@ import request from '@/utils/request'
 
 const route = useRoute()
 const activeMenu = computed(() => route.path)
+const isMobile = ref(false)
 const siteInfo = ref({
   site_name: '我的博客',
   site_subtitle: '记录生活，分享技术',
@@ -66,6 +67,7 @@ const loadSiteInfo = async () => {
 
 onMounted(() => {
   loadSiteInfo()
+  isMobile.value = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent)
 })
 </script>
 

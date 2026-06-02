@@ -1,7 +1,7 @@
 <template>
   <div class="article-detail-page">
     <el-row :gutter="20">
-      <el-col :span="6">
+      <el-col :span="6" v-if="!isMobile">
         <div class="sidebar-sticky">
           <el-card class="sidebar-card">
             <template #header>
@@ -29,7 +29,7 @@
         </div>
       </el-col>
 
-      <el-col :span="18">
+      <el-col :span="isMobile ? 24 : 18">
         <el-card v-if="article" class="article-card">
           <h1 class="article-title">{{ article.title }}</h1>
           
@@ -42,10 +42,10 @@
           </div>
 
           <div v-if="article.cover_image" class="article-cover">
-            <img :src="article.cover_image" :alt="article.title" />
+            <img :src="article.cover_image" :alt="article.title" @click="previewImage(article.cover_image)" class="clickable-image" />
           </div>
 
-          <div class="article-content" v-html="article.content"></div>
+          <div class="article-content" v-html="article.content" @click="handleContentClick"></div>
 
           <div v-if="article.tags && article.tags.length > 0" class="article-tags">
             <span>标签：</span>
@@ -91,6 +91,27 @@
         <el-empty v-else description="文章不存在" />
       </el-col>
     </el-row>
+
+    <div v-if="previewImageVisible" class="image-preview-overlay" @click="closePreview">
+      <div class="image-preview-container" @click.stop>
+        <button class="close-btn" @click="closePreview">&times;</button>
+        <div class="zoom-controls">
+          <button class="zoom-btn" @click.stop="zoomIn">+</button>
+          <span class="zoom-level">{{ Math.round(imageScale * 100) }}%</span>
+          <button class="zoom-btn" @click.stop="zoomOut">-</button>
+          <button class="zoom-btn" @click.stop="resetZoom">1:1</button>
+        </div>
+        <img 
+          :src="previewImageSrc" 
+          :style="{ transform: `scale(${imageScale})` }" 
+          class="preview-image"
+          @wheel="handleWheel"
+          @touchstart="handleTouchStart"
+          @touchmove="handleTouchMove"
+          @touchend="handleTouchEnd"
+        />
+      </div>
+    </div>
   </div>
 </template>
 
@@ -146,6 +167,11 @@ const commentEnabled = ref(false)
 const commentLoading = ref(false)
 const commentFormRef = ref(null)
 const headings = ref([])
+const previewImageVisible = ref(false)
+const previewImageSrc = ref('')
+const imageScale = ref(1)
+const touchStartDistance = ref(0)
+const isMobile = ref(false)
 
 const commentForm = ref({
   nickname: '',
@@ -193,6 +219,109 @@ const extractHeadings = () => {
     h2.id = `heading-${index}`
     return h2.textContent || h2.innerText
   })
+  
+  initLazyLoad()
+}
+
+const initLazyLoad = () => {
+  const articleContent = document.querySelector('.article-content')
+  if (!articleContent) {
+    return
+  }
+  
+  const lazyImages = articleContent.querySelectorAll('img[data-src]')
+  
+  const observer = new IntersectionObserver((entries) => {
+    entries.forEach((entry) => {
+      if (entry.isIntersecting) {
+        const img = entry.target
+        const src = img.getAttribute('data-src')
+        if (src) {
+          img.setAttribute('src', src)
+          img.removeAttribute('data-src')
+        }
+        observer.unobserve(img)
+      }
+    })
+  }, {
+    rootMargin: '100px',
+    threshold: 0.1
+  })
+  
+  lazyImages.forEach((img) => {
+    observer.observe(img)
+    img.classList.add('clickable-image')
+  })
+}
+
+const previewImage = (src) => {
+  previewImageSrc.value = src
+  imageScale.value = 1
+  previewImageVisible.value = true
+  document.body.style.overflow = 'hidden'
+}
+
+const closePreview = () => {
+  previewImageVisible.value = false
+  imageScale.value = 1
+  document.body.style.overflow = ''
+}
+
+const zoomIn = () => {
+  imageScale.value = Math.min(imageScale.value + 0.2, 3)
+}
+
+const zoomOut = () => {
+  imageScale.value = Math.max(imageScale.value - 0.2, 0.5)
+}
+
+const resetZoom = () => {
+  imageScale.value = 1
+}
+
+const handleWheel = (e) => {
+  e.preventDefault()
+  if (e.deltaY < 0) {
+    zoomIn()
+  } else {
+    zoomOut()
+  }
+}
+
+const handleContentClick = (e) => {
+  const target = e.target
+  if (target.tagName === 'IMG') {
+    const src = target.getAttribute('src') || target.getAttribute('data-src')
+    if (src) {
+      previewImage(src)
+    }
+  }
+}
+
+const handleTouchStart = (e) => {
+  if (e.touches.length === 2) {
+    touchStartDistance.value = getTouchDistance(e.touches)
+  }
+}
+
+const handleTouchMove = (e) => {
+  if (e.touches.length === 2 && touchStartDistance.value > 0) {
+    e.preventDefault()
+    const currentDistance = getTouchDistance(e.touches)
+    const scale = currentDistance / touchStartDistance.value
+    imageScale.value = Math.min(Math.max(imageScale.value * scale, 0.5), 3)
+    touchStartDistance.value = currentDistance
+  }
+}
+
+const handleTouchEnd = () => {
+  touchStartDistance.value = 0
+}
+
+const getTouchDistance = (touches) => {
+  const dx = touches[0].clientX - touches[1].clientX
+  const dy = touches[0].clientY - touches[1].clientY
+  return Math.sqrt(dx * dx + dy * dy)
 }
 
 const scrollToHeading = (index) => {
@@ -370,6 +499,7 @@ const formatDate = (dateStr) => {
 onMounted(() => {
   loadArticle()
   loadSettings()
+  isMobile.value = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent)
 })
 
 watch(() => route.params.slug, () => {
@@ -393,6 +523,12 @@ watch(() => route.params.slug, () => {
   left: 0;
   right: 0;
   bottom: 0;
+}
+
+@media (max-width: 768px) {
+  .article-detail-page {
+    padding: 0px;
+  }
 }
 
 .article-card {
@@ -644,5 +780,105 @@ watch(() => route.params.slug, () => {
 
 :deep(.el-tag) {
   border-radius: 4px;
+}
+
+.clickable-image {
+  cursor: zoom-in;
+  transition: transform 0.2s;
+}
+
+.clickable-image:hover {
+  transform: scale(1.02);
+}
+
+.image-preview-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-color: rgba(0, 0, 0, 0.85);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 9999;
+  cursor: zoom-out;
+}
+
+.image-preview-container {
+  position: relative;
+  max-width: 90%;
+  max-height: 90vh;
+  cursor: default;
+}
+
+.close-btn {
+  position: absolute;
+  top: -40px;
+  right: 0;
+  width: 36px;
+  height: 36px;
+  border: none;
+  background-color: rgba(255, 255, 255, 0.2);
+  color: white;
+  font-size: 24px;
+  border-radius: 50%;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: background-color 0.3s;
+}
+
+.close-btn:hover {
+  background-color: rgba(255, 255, 255, 0.3);
+}
+
+.zoom-controls {
+  position: absolute;
+  top: -40px;
+  left: 0;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.zoom-btn {
+  width: 36px;
+  height: 36px;
+  border: none;
+  background-color: rgba(255, 255, 255, 0.2);
+  color: white;
+  font-size: 18px;
+  border-radius: 50%;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: background-color 0.3s;
+}
+
+.zoom-btn:hover {
+  background-color: rgba(255, 255, 255, 0.3);
+}
+
+.zoom-level {
+  color: white;
+  font-size: 14px;
+  min-width: 60px;
+  text-align: center;
+}
+
+.preview-image {
+  max-width: 100%;
+  max-height: 85vh;
+  object-fit: contain;
+  border-radius: 8px;
+  transition: transform 0.2s;
+  cursor: grab;
+}
+
+.preview-image:active {
+  cursor: grabbing;
 }
 </style>
