@@ -88,9 +88,9 @@ const routes = [
         component: () => import('@/views/front/Archive.vue')
       },
       {
-        path: 'about',
-        name: 'About',
-        component: () => import('@/views/front/About.vue')
+        path: 'resume',
+        name: 'Resume',
+        component: () => import('@/views/front/Resume.vue')
       }
     ]
   }

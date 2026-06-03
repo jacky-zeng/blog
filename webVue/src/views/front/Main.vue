@@ -17,7 +17,7 @@ import { ref, onMounted } from 'vue'
 const textList = [
   '一名可爱的程序员',
   '一位PHP开发者',
-  '一位Go开发者',
+  '一位全栈开发者',
   '工作专注高效,认真负责,自驱能力强',
   '会使用VibeCoding进行全栈开发',
   '能独立部署运维服务器'

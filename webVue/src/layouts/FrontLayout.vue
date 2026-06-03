@@ -15,7 +15,7 @@
           <el-menu-item index="/blog">Blog</el-menu-item>
           <el-menu-item index="/resume">我的简历</el-menu-item>
           <el-menu-item index="/search">搜索</el-menu-item>
-          <el-menu-item index="/">关于</el-menu-item>
+          <el-menu-item index="/resume">关于</el-menu-item>
         </el-menu>
       </div>
     </el-header>
