@@ -415,16 +415,12 @@ const highlightCodeBlocks = () => {
       code.classList.add('hljs')
     }
     
-    const pre = document.createElement('pre')
-    pre.classList.add('hljs')
-    pre.style.backgroundColor = '#1a1a2e'
-    pre.style.padding = '16px'
-    pre.style.borderRadius = '8px'
-    pre.style.overflowX = 'auto'
-    pre.style.margin = '16px 0'
-    
-    code.parentNode.insertBefore(pre, code)
-    pre.appendChild(code)
+    code.style.backgroundColor = '#f4f4f4'
+    code.style.padding = '2px 6px'
+    code.style.borderRadius = '4px'
+    code.style.fontFamily = 'Consolas, Monaco, "Courier New", monospace'
+    code.style.fontSize = '0.9em'
+    code.style.color = '#1d1b1bff'
   })
 }
 

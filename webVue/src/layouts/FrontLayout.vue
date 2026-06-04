@@ -14,8 +14,8 @@
           <el-menu-item index="/">主页</el-menu-item>
           <el-menu-item index="/blog">Blog</el-menu-item>
           <el-menu-item index="/resume">我的简历</el-menu-item>
-          <el-menu-item index="/search">搜索</el-menu-item>
-          <el-menu-item index="/resume">关于</el-menu-item>
+          <el-menu-item @click="handleSearchClick">搜索</el-menu-item>
+          <el-menu-item @click="handleAboutClick">关于</el-menu-item>
         </el-menu>
       </div>
     </el-header>
@@ -53,6 +53,14 @@ const siteInfo = ref({
   author_bio: '',
   social_links: {}
 })
+
+const handleSearchClick = () => {
+  window.location.href = 'http://search.zengyanqi.com'
+}
+
+const handleAboutClick = () => {
+  window.location.href = 'http://www.zengyanqi.com/'
+}
 
 const loadSiteInfo = async () => {
   try {

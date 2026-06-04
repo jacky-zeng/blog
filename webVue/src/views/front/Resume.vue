@@ -34,7 +34,7 @@
             <span>25-30K</span>
           </div>
           <div class="info-item">
-            <span class="label">联系电话：</span>
+            <span class="label">联系：</span>
             <span>15900493964</span>
           </div>
         </el-card>
@@ -137,8 +137,71 @@
               <span>25-30K</span>
             </div>
             <div class="info-item">
-              <span class="label">联系电话：</span>
+              <span class="label">联系：</span>
               <span>15900493964</span>
+            </div>
+          </div>
+        </el-card>
+        <br/>
+        <el-card  v-if="isMobile" class="main-card">
+          <template #header>
+            <span>技术技能</span>
+          </template>
+          <div class="skill-category">
+            <div class="skill-title">后端语言 & 框架</div>
+            <div class="skill-tags">
+              <el-tag size="small">PHP</el-tag>
+              <el-tag size="small">Laravel</el-tag>
+              <el-tag size="small">Yii</el-tag>
+              <el-tag size="small">Yaf</el-tag>
+              <el-tag size="small">ThinkPHP</el-tag>
+              <el-tag size="small">Hyperf</el-tag>
+              <el-tag size="small">Go</el-tag>
+              <el-tag size="small">C# / .NET</el-tag>
+            </div>
+          </div>
+          <div class="skill-category">
+            <div class="skill-title">数据库 & 缓存</div>
+            <div class="skill-tags">
+              <el-tag size="small">MySQL</el-tag>
+              <el-tag size="small">Redis</el-tag>
+              <el-tag size="small">SQL Server</el-tag>
+            </div>
+          </div>
+          <div class="skill-category">
+            <div class="skill-title">中间件 & 基础设施</div>
+            <div class="skill-tags">
+              <el-tag size="small">Nginx</el-tag>
+              <el-tag size="small">RabbitMQ</el-tag>
+              <el-tag size="small">阿里云MQ</el-tag>
+              <el-tag size="small">ElasticSearch</el-tag>
+            </div>
+          </div>
+          <div class="skill-category">
+            <div class="skill-title">架构 & 方法论</div>
+            <div class="skill-tags">
+              <el-tag size="small">高并发系统设计</el-tag>
+              <el-tag size="small">微服务架构</el-tag>
+              <el-tag size="small">分布式系统</el-tag>
+              <el-tag size="small">RESTful API</el-tag>
+            </div>
+          </div>
+          <div class="skill-category">
+            <div class="skill-title">业务领域 & 集成</div>
+            <div class="skill-tags">
+              <el-tag size="small">电商交易系统</el-tag>
+              <el-tag size="small">微信生态</el-tag>
+              <el-tag size="small">支付宝生态</el-tag>
+              <el-tag size="small">IoT硬件对接</el-tag>
+            </div>
+          </div>
+          <div class="skill-category">
+            <div class="skill-title">运维 & DevOps</div>
+            <div class="skill-tags">
+              <el-tag size="small">Linux部署</el-tag>
+              <el-tag size="small">性能监控</el-tag>
+              <el-tag size="small">故障分析与解决</el-tag>
+              <el-tag size="small">慢查询分析</el-tag>
             </div>
           </div>
         </el-card>
