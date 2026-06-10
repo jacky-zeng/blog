@@ -22,13 +22,19 @@ request.interceptors.response.use(
   response => {
     return response.data
   },
-  error => {
+  async error => {
     if (error.response) {
       const { status, data } = error.response
-      if (status === 401) {
+      if (status === 401 || (data && data.message === 'Token无效或已过期')) {
         localStorage.removeItem('token')
         localStorage.removeItem('user')
-        window.location.href = '/admin/login'
+        // 调用退出接口
+        try {
+          await axios.post('/api/admin/logout')
+        } catch (e) {
+          // 忽略退出接口错误
+        }
+        window.location.href = '/#/admin/login'
       }
       return Promise.reject(data)
     }

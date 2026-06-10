@@ -131,6 +131,7 @@ import php from 'highlight.js/lib/languages/php'
 import go from 'highlight.js/lib/languages/go'
 import rust from 'highlight.js/lib/languages/rust'
 import cpp from 'highlight.js/lib/languages/cpp'
+import c from 'highlight.js/lib/languages/c'
 import csharp from 'highlight.js/lib/languages/csharp'
 import ruby from 'highlight.js/lib/languages/ruby'
 import sql from 'highlight.js/lib/languages/sql'
@@ -149,6 +150,7 @@ hljs.registerLanguage('php', php)
 hljs.registerLanguage('go', go)
 hljs.registerLanguage('rust', rust)
 hljs.registerLanguage('cpp', cpp)
+hljs.registerLanguage('c', c)
 hljs.registerLanguage('csharp', csharp)
 hljs.registerLanguage('ruby', ruby)
 hljs.registerLanguage('sql', sql)
@@ -157,6 +159,7 @@ hljs.registerLanguage('html', html)
 hljs.registerLanguage('css', css)
 hljs.registerLanguage('markdown', markdown)
 hljs.registerLanguage('shell', shell)
+hljs.registerLanguage('bash', shell)
 
 const route = useRoute()
 
@@ -380,7 +383,12 @@ const highlightCodeBlocks = () => {
     
     console.log('Processing pre code block, language:', language)
     
-    if (hljs.getLanguage(language)) {
+    if (language === 'auto') {
+      const result = hljs.highlightAuto(code.textContent || '')
+      code.innerHTML = result.value
+      code.classList.add('hljs')
+      pre.classList.add('hljs')
+    } else if (hljs.getLanguage(language)) {
       const result = hljs.highlight(code.textContent || '', { language: language })
       code.innerHTML = result.value
       code.classList.add('hljs')
@@ -409,7 +417,11 @@ const highlightCodeBlocks = () => {
     
     console.log('Processing standalone code, class:', code.className, 'language:', language)
     
-    if (hljs.getLanguage(language)) {
+    if (language === 'auto') {
+      const result = hljs.highlightAuto(code.textContent || '')
+      code.innerHTML = result.value
+      code.classList.add('hljs')
+    } else if (hljs.getLanguage(language)) {
       const result = hljs.highlight(code.textContent || '', { language: language })
       code.innerHTML = result.value
       code.classList.add('hljs')

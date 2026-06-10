@@ -1,11 +1,13 @@
 <template>
   <el-container class="admin-layout">
-    <el-aside width="200px" class="sidebar">
+    <el-aside :width="isCollapse ? '64px' : '200px'" class="sidebar">
       <div class="logo">
-        <h3>博客管理</h3>
+        <h3 v-if="!isCollapse">博客管理</h3>
+        <h3 v-else>博客</h3>
       </div>
       <el-menu
         :default-active="activeMenu"
+        :collapse="isCollapse"
         router
         background-color="#304156"
         text-color="#bfcbd9"
@@ -13,38 +15,44 @@
       >
         <el-menu-item index="/admin/dashboard">
           <el-icon><DataAnalysis /></el-icon>
-          <span>Dashboard</span>
+          <template #title>Dashboard</template>
         </el-menu-item>
         <el-menu-item index="/admin/articles">
           <el-icon><Document /></el-icon>
-          <span>文章管理</span>
+          <template #title>文章管理</template>
         </el-menu-item>
         <el-menu-item index="/admin/categories">
           <el-icon><Folder /></el-icon>
-          <span>分类管理</span>
+          <template #title>分类管理</template>
         </el-menu-item>
         <el-menu-item index="/admin/tags">
           <el-icon><PriceTag /></el-icon>
-          <span>标签管理</span>
+          <template #title>标签管理</template>
         </el-menu-item>
         <el-menu-item index="/admin/comments">
           <el-icon><ChatDotRound /></el-icon>
-          <span>评论管理</span>
+          <template #title>评论管理</template>
         </el-menu-item>
         <el-menu-item index="/admin/settings">
           <el-icon><Setting /></el-icon>
-          <span>系统设置</span>
+          <template #title>系统设置</template>
         </el-menu-item>
       </el-menu>
     </el-aside>
     <el-container>
       <el-header class="header">
         <div class="header-content">
-          <div class="breadcrumb">
-            <el-breadcrumb separator="/">
-              <el-breadcrumb-item :to="{ path: '/admin' }">首页</el-breadcrumb-item>
-              <el-breadcrumb-item>{{ currentPage }}</el-breadcrumb-item>
-            </el-breadcrumb>
+          <div class="header-left">
+            <el-icon class="collapse-icon" @click="toggleCollapse">
+              <Fold v-if="!isCollapse" />
+              <Expand v-else />
+            </el-icon>
+            <div class="breadcrumb">
+              <el-breadcrumb separator="/">
+                <el-breadcrumb-item :to="{ path: '/admin' }">首页</el-breadcrumb-item>
+                <el-breadcrumb-item>{{ currentPage }}</el-breadcrumb-item>
+              </el-breadcrumb>
+            </div>
           </div>
           <div class="user-info">
             <el-dropdown @command="handleCommand">
@@ -91,12 +99,19 @@
 import { ref, reactive, computed } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { ElMessage, ElMessageBox } from 'element-plus'
+import { Fold, Expand } from '@element-plus/icons-vue'
 import { useUserStore } from '@/stores/user'
 import request from '@/utils/request'
 
 const route = useRoute()
 const router = useRouter()
 const userStore = useUserStore()
+
+const isCollapse = ref(false)
+
+const toggleCollapse = () => {
+  isCollapse.value = !isCollapse.value
+}
 
 const passwordDialogVisible = ref(false)
 const passwordFormRef = ref(null)
@@ -196,6 +211,7 @@ const handleChangePassword = async () => {
 .sidebar {
   background-color: #304156;
   overflow-x: hidden;
+  transition: width 0.3s;
 }
 
 .logo {
@@ -207,6 +223,7 @@ const handleChangePassword = async () => {
   font-size: 18px;
   font-weight: bold;
   border-bottom: 1px solid #1f2d3d;
+  transition: all 0.3s;
 }
 
 .header {
@@ -221,6 +238,23 @@ const handleChangePassword = async () => {
   display: flex;
   justify-content: space-between;
   align-items: center;
+}
+
+.header-left {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+}
+
+.collapse-icon {
+  font-size: 20px;
+  cursor: pointer;
+  color: #333;
+  transition: transform 0.3s;
+}
+
+.collapse-icon:hover {
+  color: #409EFF;
 }
 
 .user-info {

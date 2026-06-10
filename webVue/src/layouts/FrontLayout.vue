@@ -59,7 +59,7 @@ const handleSearchClick = () => {
 }
 
 const handleAboutClick = () => {
-  window.location.href = 'http://www.zengyanqi.com/'
+  window.location.href = '/'
 }
 
 const loadSiteInfo = async () => {
