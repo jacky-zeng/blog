@@ -88,13 +88,14 @@
 </template>
 
 <script setup>
-import { ref, onMounted } from 'vue'
-import { useRouter } from 'vue-router'
+import { ref, onMounted, watch } from 'vue'
+import { useRouter, useRoute } from 'vue-router'
 import { ElMessage } from 'element-plus'
 import { Calendar } from '@element-plus/icons-vue'
 import request from '@/utils/request'
 
 const router = useRouter()
+const route = useRoute()
 
 const articles = ref([])
 const categories = ref([])
@@ -144,6 +145,10 @@ const loadTags = async () => {
 
 const handleCurrentChange = (val) => {
   currentPage.value = val
+  router.push({
+    path: route.path,
+    query: { page: val }
+  })
   loadArticles()
 }
 
@@ -153,10 +158,20 @@ const formatDate = (dateStr) => {
 }
 
 onMounted(() => {
+  const page = parseInt(route.query.page) || 1
+  currentPage.value = page
   loadArticles()
   loadCategories()
   loadTags()
   isMobile.value = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent)
+})
+
+watch(() => route.query.page, (newPage) => {
+  const page = parseInt(newPage) || 1
+  if (page !== currentPage.value) {
+    currentPage.value = page
+    loadArticles()
+  }
 })
 </script>
 

@@ -39,13 +39,14 @@
 </template>
 
 <script setup>
-import { ref, onMounted } from 'vue'
-import { useRoute } from 'vue-router'
+import { ref, onMounted, watch } from 'vue'
+import { useRoute, useRouter } from 'vue-router'
 import { ElMessage } from 'element-plus'
 import { Calendar } from '@element-plus/icons-vue'
 import request from '@/utils/request'
 
 const route = useRoute()
+const router = useRouter()
 
 const category = ref(null)
 const articles = ref([])
@@ -55,7 +56,12 @@ const total = ref(0)
 
 const loadData = async () => {
   try {
-    const res = await request.get(`/category/${route.params.slug}`)
+    const res = await request.get(`/category/${route.params.slug}`, {
+      params: {
+        page: currentPage.value,
+        page_size: pageSize.value
+      }
+    })
     if (res.code === 200) {
       category.value = res.data.category
       articles.value = res.data.articles.data
@@ -68,6 +74,10 @@ const loadData = async () => {
 
 const handleCurrentChange = (val) => {
   currentPage.value = val
+  router.push({
+    path: route.path,
+    query: { page: val }
+  })
   loadData()
 }
 
@@ -77,7 +87,17 @@ const formatDate = (dateStr) => {
 }
 
 onMounted(() => {
+  const page = parseInt(route.query.page) || 1
+  currentPage.value = page
   loadData()
+})
+
+watch(() => route.query.page, (newPage) => {
+  const page = parseInt(newPage) || 1
+  if (page !== currentPage.value) {
+    currentPage.value = page
+    loadData()
+  }
 })
 </script>
 

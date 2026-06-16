@@ -34,8 +34,8 @@
             <span>25-30K</span>
           </div>
           <div class="info-item">
-            <span class="label">联系：</span>
-            <span>15900493964</span>
+            <span class="label">联系(wechat)：</span>
+            <span>Zeng__Y__Q</span>
           </div>
         </el-card>
 
@@ -137,8 +137,8 @@
               <span>25-30K</span>
             </div>
             <div class="info-item">
-              <span class="label">联系：</span>
-              <span>15900493964</span>
+              <span class="label">联系(wechat)：</span>
+              <span>Zeng__Y__Q</span>
             </div>
           </div>
         </el-card>
