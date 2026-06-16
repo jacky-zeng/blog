@@ -889,4 +889,18 @@ watch(() => route.params.slug, () => {
 .preview-image:active {
   cursor: grabbing;
 }
+
+:deep(.container-wrapper.warning),
+:deep(.container-wrapper .warning),
+:deep(.article-content .container-wrapper.warning),
+:deep(.article-content .container-wrapper .warning) {
+  background-color: #fff7e6 !important;
+  border-left: 4px solid #faad14 !important;
+  padding: 12px 16px !important;
+  margin: 16px 0 !important;
+  border-radius: 4px !important;
+  color: #d46b08 !important;
+  font-size: 14px !important;
+  line-height: 1.6 !important;
+}
 </style>

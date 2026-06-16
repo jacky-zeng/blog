@@ -92,11 +92,26 @@
         <el-button type="primary" @click="handleChangePassword">确定</el-button>
       </template>
     </el-dialog>
+
+    <div class="zoom-control">
+      <button class="zoom-btn zoom-in" @click="zoomIn" :disabled="zoomPercent >= 100" title="放大">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <line x1="12" y1="5" x2="12" y2="19"/>
+          <line x1="5" y1="12" x2="19" y2="12"/>
+        </svg>
+      </button>
+      <div class="zoom-display">{{ zoomPercent }}%</div>
+      <button class="zoom-btn zoom-out" @click="zoomOut" :disabled="zoomPercent <= 10" title="缩小">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <line x1="5" y1="12" x2="19" y2="12"/>
+        </svg>
+      </button>
+    </div>
   </el-container>
 </template>
 
 <script setup>
-import { ref, reactive, computed } from 'vue'
+import { ref, reactive, computed, watch, onMounted } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { ElMessage, ElMessageBox } from 'element-plus'
 import { Fold, Expand } from '@element-plus/icons-vue'
@@ -108,6 +123,36 @@ const router = useRouter()
 const userStore = useUserStore()
 
 const isCollapse = ref(false)
+
+const zoomPercent = ref(100)
+
+const zoomIn = () => {
+  if (zoomPercent.value < 100) {
+    zoomPercent.value = Math.min(zoomPercent.value + 10, 100)
+  }
+}
+
+const zoomOut = () => {
+  if (zoomPercent.value > 10) {
+    zoomPercent.value = Math.max(zoomPercent.value - 10, 10)
+  }
+}
+
+watch(zoomPercent, (newVal) => {
+  localStorage.setItem('admin_zoom_percent', String(newVal))
+  document.documentElement.style.zoom = `${newVal}%`
+})
+
+onMounted(() => {
+  const saved = localStorage.getItem('admin_zoom_percent')
+  if (saved) {
+    const val = parseInt(saved)
+    if (val >= 10 && val <= 100) {
+      zoomPercent.value = val
+      document.documentElement.style.zoom = `${val}%`
+    }
+  }
+})
 
 const toggleCollapse = () => {
   isCollapse.value = !isCollapse.value
@@ -270,5 +315,72 @@ const handleChangePassword = async () => {
 .main-content {
   background-color: #f0f2f5;
   padding: 20px;
+}
+
+.zoom-control {
+  position: fixed;
+  right: 24px;
+  top: 50%;
+  transform: translateY(-50%);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 10px;
+  z-index: 9999;
+  background: rgba(255, 255, 255, 0.85);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+  padding: 16px 12px;
+  border-radius: 16px;
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.12);
+  border: 1px solid rgba(255, 255, 255, 0.6);
+}
+
+.zoom-btn {
+  width: 44px;
+  height: 44px;
+  border-radius: 50%;
+  padding: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 18px;
+  border: 1px solid rgba(255, 255, 255, 0.8);
+  background: rgba(245, 247, 250, 0.9);
+  color: #5a6a7a;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+}
+
+.zoom-btn:hover:not(:disabled) {
+  background: rgba(64, 158, 255, 0.95);
+  color: #fff;
+  border-color: rgba(64, 158, 255, 0.95);
+  box-shadow: 0 4px 16px rgba(64, 158, 255, 0.4);
+  transform: scale(1.05);
+}
+
+.zoom-btn:active:not(:disabled) {
+  transform: scale(0.95);
+}
+
+.zoom-btn:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+}
+
+.zoom-btn svg {
+  width: 18px;
+  height: 18px;
+}
+
+.zoom-display {
+  font-size: 14px;
+  font-weight: 600;
+  color: #5a6a7a;
+  min-width: 50px;
+  text-align: center;
 }
 </style>

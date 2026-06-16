@@ -19,22 +19,37 @@ request.interceptors.request.use(
 )
 
 request.interceptors.response.use(
-  response => {
-    return response.data
+  async response => {
+    const { data } = response
+    if (data && data.code === 401) {
+      const currentPath = window.location.hash.replace(/^#/, '')
+      if (currentPath !== '/admin/login') {
+        localStorage.removeItem('token')
+        localStorage.removeItem('user')
+        try {
+          await request.post('/admin/logout')
+        } catch (e) {
+        }
+        window.location.href = '/#/admin/login'
+      }
+      return Promise.reject(data)
+    }
+    return data
   },
   async error => {
     if (error.response) {
       const { status, data } = error.response
-      if (status === 401 || (data && data.message === 'Token无效或已过期')) {
-        localStorage.removeItem('token')
-        localStorage.removeItem('user')
-        // 调用退出接口
-        try {
-          await axios.post('/api/admin/logout')
-        } catch (e) {
-          // 忽略退出接口错误
+      if (status === 401 || (data && (data.code === 401 || data.message === 'Token无效或已过期'))) {
+        const currentPath = window.location.hash.replace(/^#/, '')
+        if (currentPath !== '/admin/login') {
+          localStorage.removeItem('token')
+          localStorage.removeItem('user')
+          try {
+            await request.post('/admin/logout')
+          } catch (e) {
+          }
+          window.location.href = '/#/admin/login'
         }
-        window.location.href = '/#/admin/login'
       }
       return Promise.reject(data)
     }
