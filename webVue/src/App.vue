@@ -1,6 +1,5 @@
 <template>
   <div class="app-container">
-    <div class="global-bg" v-if="isHomePage && !isMobile"></div>
     <router-view />
   </div>
 </template>
@@ -41,19 +40,7 @@ html, body {
   min-height: 100vh;
 }
 
-.global-bg {
-  position: fixed;
-  top: 0;
-  right: 0;
-  width: 800px;
-  height: 800px;
-  background-image: url('/storage/bg/bg.png');
-  background-size: contain;
-  background-repeat: no-repeat;
-  background-position: top right;
-  z-index: 0;
-  pointer-events: none;
-}
+
 
 .router-view {
   position: relative;

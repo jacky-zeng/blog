@@ -76,7 +76,6 @@ onUnmounted(() => {
 <style scoped>
 .main-page {
   height: 70vh;
-  background-color: #000;
   display: flex;
   justify-content: center;
   align-items: center;

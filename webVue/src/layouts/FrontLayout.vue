@@ -20,6 +20,7 @@
       </div>
     </el-header>
     <el-main class="main-content">
+      <TextParticles v-if="route.path === '/'" />
       <router-view />
     </el-main>
     <el-footer 
@@ -40,6 +41,7 @@ import { ref, computed, onMounted } from 'vue'
 import { useRoute } from 'vue-router'
 import { ElMessage } from 'element-plus'
 import request from '@/utils/request'
+import TextParticles from '@/components/TextParticles.vue'
 
 const route = useRoute()
 const activeMenu = computed(() => route.path)
