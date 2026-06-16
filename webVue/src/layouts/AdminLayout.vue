@@ -1,79 +1,83 @@
 <template>
-  <el-container class="admin-layout">
-    <el-aside :width="isCollapse ? '64px' : '200px'" class="sidebar">
-      <div class="logo">
-        <h3 v-if="!isCollapse">博客管理</h3>
-        <h3 v-else>博客</h3>
-      </div>
-      <el-menu
-        :default-active="activeMenu"
-        :collapse="isCollapse"
-        router
-        background-color="#304156"
-        text-color="#bfcbd9"
-        active-text-color="#409EFF"
-      >
-        <el-menu-item index="/admin/dashboard">
-          <el-icon><DataAnalysis /></el-icon>
-          <template #title>Dashboard</template>
-        </el-menu-item>
-        <el-menu-item index="/admin/articles">
-          <el-icon><Document /></el-icon>
-          <template #title>文章管理</template>
-        </el-menu-item>
-        <el-menu-item index="/admin/categories">
-          <el-icon><Folder /></el-icon>
-          <template #title>分类管理</template>
-        </el-menu-item>
-        <el-menu-item index="/admin/tags">
-          <el-icon><PriceTag /></el-icon>
-          <template #title>标签管理</template>
-        </el-menu-item>
-        <el-menu-item index="/admin/comments">
-          <el-icon><ChatDotRound /></el-icon>
-          <template #title>评论管理</template>
-        </el-menu-item>
-        <el-menu-item index="/admin/settings">
-          <el-icon><Setting /></el-icon>
-          <template #title>系统设置</template>
-        </el-menu-item>
-      </el-menu>
-    </el-aside>
-    <el-container>
-      <el-header class="header">
-        <div class="header-content">
-          <div class="header-left">
-            <el-icon class="collapse-icon" @click="toggleCollapse">
-              <Fold v-if="!isCollapse" />
-              <Expand v-else />
-            </el-icon>
-            <div class="breadcrumb">
-              <el-breadcrumb separator="/">
-                <el-breadcrumb-item :to="{ path: '/admin' }">首页</el-breadcrumb-item>
-                <el-breadcrumb-item>{{ currentPage }}</el-breadcrumb-item>
-              </el-breadcrumb>
+  <div class="admin-layout-container">
+    <div class="admin-layout-wrapper" :style="{ transform: `scale(${zoomPercent / 100})`, transformOrigin: 'top left', width: `${100 / (zoomPercent / 100)}vw`, height: `${100 / (zoomPercent / 100)}vh` }">
+      <el-container class="admin-layout">
+        <el-aside :width="isCollapse ? '64px' : '200px'" class="sidebar">
+          <div class="logo">
+            <h3 v-if="!isCollapse">博客管理</h3>
+            <h3 v-else>博客</h3>
+          </div>
+          <el-menu
+            :default-active="activeMenu"
+            :collapse="isCollapse"
+            router
+            background-color="#304156"
+            text-color="#bfcbd9"
+            active-text-color="#409EFF"
+          >
+            <el-menu-item index="/admin/dashboard">
+              <el-icon><DataAnalysis /></el-icon>
+              <template #title>Dashboard</template>
+            </el-menu-item>
+            <el-menu-item index="/admin/articles">
+              <el-icon><Document /></el-icon>
+              <template #title>文章管理</template>
+            </el-menu-item>
+            <el-menu-item index="/admin/categories">
+              <el-icon><Folder /></el-icon>
+              <template #title>分类管理</template>
+            </el-menu-item>
+            <el-menu-item index="/admin/tags">
+              <el-icon><PriceTag /></el-icon>
+              <template #title>标签管理</template>
+            </el-menu-item>
+            <el-menu-item index="/admin/comments">
+              <el-icon><ChatDotRound /></el-icon>
+              <template #title>评论管理</template>
+            </el-menu-item>
+            <el-menu-item index="/admin/settings">
+              <el-icon><Setting /></el-icon>
+              <template #title>系统设置</template>
+            </el-menu-item>
+          </el-menu>
+        </el-aside>
+        <el-container>
+          <el-header class="header">
+            <div class="header-content">
+              <div class="header-left">
+                <el-icon class="collapse-icon" @click="toggleCollapse">
+                  <Fold v-if="!isCollapse" />
+                  <Expand v-else />
+                </el-icon>
+                <div class="breadcrumb">
+                  <el-breadcrumb separator="/">
+                    <el-breadcrumb-item :to="{ path: '/admin' }">首页</el-breadcrumb-item>
+                    <el-breadcrumb-item>{{ currentPage }}</el-breadcrumb-item>
+                  </el-breadcrumb>
+                </div>
+              </div>
+              <div class="user-info">
+                <el-dropdown @command="handleCommand">
+                  <span class="el-dropdown-link">
+                    {{ userStore.user.nickname || userStore.user.username }}
+                    <el-icon class="el-icon--right"><arrow-down /></el-icon>
+                  </span>
+                  <template #dropdown>
+                    <el-dropdown-menu>
+                      <el-dropdown-item command="changePassword">修改密码</el-dropdown-item>
+                      <el-dropdown-item command="logout">退出登录</el-dropdown-item>
+                    </el-dropdown-menu>
+                  </template>
+                </el-dropdown>
+              </div>
             </div>
-          </div>
-          <div class="user-info">
-            <el-dropdown @command="handleCommand">
-              <span class="el-dropdown-link">
-                {{ userStore.user.nickname || userStore.user.username }}
-                <el-icon class="el-icon--right"><arrow-down /></el-icon>
-              </span>
-              <template #dropdown>
-                <el-dropdown-menu>
-                  <el-dropdown-item command="changePassword">修改密码</el-dropdown-item>
-                  <el-dropdown-item command="logout">退出登录</el-dropdown-item>
-                </el-dropdown-menu>
-              </template>
-            </el-dropdown>
-          </div>
-        </div>
-      </el-header>
-      <el-main class="main-content">
-        <router-view />
-      </el-main>
-    </el-container>
+          </el-header>
+          <el-main class="main-content">
+            <router-view />
+          </el-main>
+        </el-container>
+      </el-container>
+    </div>
 
     <el-dialog v-model="passwordDialogVisible" title="修改密码" width="400px">
       <el-form :model="passwordForm" :rules="passwordRules" ref="passwordFormRef" label-width="100px">
@@ -107,7 +111,7 @@
         </svg>
       </button>
     </div>
-  </el-container>
+  </div>
 </template>
 
 <script setup>
@@ -140,7 +144,6 @@ const zoomOut = () => {
 
 watch(zoomPercent, (newVal) => {
   localStorage.setItem('admin_zoom_percent', String(newVal))
-  document.documentElement.style.zoom = `${newVal}%`
 })
 
 onMounted(() => {
@@ -149,7 +152,6 @@ onMounted(() => {
     const val = parseInt(saved)
     if (val >= 10 && val <= 100) {
       zoomPercent.value = val
-      document.documentElement.style.zoom = `${val}%`
     }
   }
 })
@@ -249,8 +251,22 @@ const handleChangePassword = async () => {
 </script>
 
 <style scoped>
-.admin-layout {
+.admin-layout-container {
+  width: 100vw;
   height: 100vh;
+  overflow: hidden;
+  position: relative;
+}
+
+.admin-layout-wrapper {
+  width: 100%;
+  height: 100%;
+  overflow: auto;
+  transform-origin: top left;
+}
+
+.admin-layout {
+  height: 100%;
 }
 
 .sidebar {
