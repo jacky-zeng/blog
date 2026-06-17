@@ -160,6 +160,7 @@ const loadArticle = async () => {
         category_id: article.category_id,
         tags: article.tags.map(t => t.name),
         cover_image: article.cover_image,
+        video: article.video || '',
         seo_title: article.seo_title,
         seo_description: article.seo_description,
         status: article.status
@@ -226,6 +227,15 @@ const beforeUpload = (file) => {
   return true
 }
 
+const calculateFileHash = async (file) => {
+  const buffer = await file.arrayBuffer()
+  const hashBuffer = await crypto.subtle.digest('SHA-256', buffer)
+  const hashArray = Array.from(new Uint8Array(hashBuffer))
+  return hashArray.map(b => b.toString(16).padStart(2, '0')).join('')
+}
+
+const CHUNK_SIZE = 2 * 1024 * 1024
+
 const customImageUploader = async (file, uploadUrl, headers, formName) => {
   const formData = new FormData()
   formData.append(formName, file)
@@ -242,8 +252,6 @@ const customImageUploader = async (file, uploadUrl, headers, formName) => {
   const result = await response.json()
   
   if (result && result.code === 200 && result.data && result.data.url) {
-    //const baseUrl = window.location.origin
-    //const fullUrl = result.data.url.startsWith('http') ? result.data.url : baseUrl + result.data.url
     return { 
       errorCode: 0,
       data: {
@@ -255,6 +263,70 @@ const customImageUploader = async (file, uploadUrl, headers, formName) => {
   return {
     errorCode: -1,
     message: '上传失败'
+  }
+}
+
+const customVideoUploader = async (file, uploadUrl, headers, formName) => {
+  try {
+    const fileHash = await calculateFileHash(file)
+    const totalChunks = Math.ceil(file.size / CHUNK_SIZE)
+    
+    for (let i = 0; i < totalChunks; i++) {
+      const start = i * CHUNK_SIZE
+      const end = Math.min(start + CHUNK_SIZE, file.size)
+      const chunk = file.slice(start, end)
+      
+      const formData = new FormData()
+      formData.append('chunk', chunk)
+      formData.append('fileHash', fileHash)
+      formData.append('chunkIndex', i)
+      formData.append('totalChunks', totalChunks)
+      formData.append('filename', file.name)
+      
+      const response = await fetch('/api/upload/video/chunk', {
+        method: 'POST',
+        headers: {
+          ...headers,
+          'Authorization': `Bearer ${localStorage.getItem('token') || ''}`
+        },
+        body: formData
+      })
+      
+      const result = await response.json()
+      if (result.code !== 200) {
+        throw new Error(result.message || '分片上传失败')
+      }
+    }
+    
+    const mergeResponse = await fetch('/api/upload/video/merge', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${localStorage.getItem('token') || ''}`
+      },
+      body: JSON.stringify({
+        fileHash,
+        totalChunks,
+        filename: file.name
+      })
+    })
+    
+    const mergeResult = await mergeResponse.json()
+    if (mergeResult.code === 200) {
+      return {
+        errorCode: 0,
+        data: {
+          src: mergeResult.data.url
+        }
+      }
+    } else {
+      throw new Error(mergeResult.message || '视频合并失败')
+    }
+  } catch (error) {
+    return {
+      errorCode: -1,
+      message: '视频上传失败：' + error.message
+    }
   }
 }
 
@@ -272,6 +344,12 @@ onMounted(() => {
       uploadFormName: 'file',
       allowBase64: false,
       uploader: customImageUploader
+    },
+    video: {
+      uploadUrl: '/api/upload/video/chunk',
+      uploadFormName: 'chunk',
+      allowBase64: false,
+      uploader: customVideoUploader
     }
   })
   
@@ -333,5 +411,39 @@ onUnmounted(() => {
   height: 178px;
   display: block;
   object-fit: cover;
+}
+
+.video-uploader {
+  border: 1px dashed #d9d9d9;
+  border-radius: 6px;
+  cursor: pointer;
+  position: relative;
+  overflow: hidden;
+  transition: all 0.3s;
+}
+
+.video-uploader:hover {
+  border-color: #409EFF;
+}
+
+.video-uploader-icon {
+  font-size: 28px;
+  color: #8c939d;
+  width: 200px;
+  height: 120px;
+  line-height: 120px;
+  text-align: center;
+}
+
+.video-preview {
+  width: 200px;
+  height: 120px;
+  display: block;
+  object-fit: cover;
+}
+
+.video-progress {
+  margin-top: 10px;
+  width: 200px;
 }
 </style>
