@@ -51,6 +51,7 @@ if (env('APP_ENV', 'dev') === 'product') {
             Constant::OPTION_LOG_LEVEL => SWOOLE_LOG_WARNING, // 日志级别
             Constant::OPTION_LOG_FILE => BASE_PATH . '/runtime/logs/swoole.log',
             Constant::OPTION_BUFFER_OUTPUT_SIZE => 2 * 1024 * 1024, // 输出缓冲区
+            Constant::OPTION_PACKAGE_MAX_LENGTH => 10 * 1024 * 1024, // 10MB 上传
         ],
         'callbacks' => [
             Event::ON_WORKER_START => [Hyperf\Framework\Bootstrap\WorkerStartCallback::class, 'onWorkerStart'],

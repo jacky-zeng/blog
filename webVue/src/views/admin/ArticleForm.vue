@@ -228,10 +228,24 @@ const beforeUpload = (file) => {
 }
 
 const calculateFileHash = async (file) => {
-  const buffer = await file.arrayBuffer()
-  const hashBuffer = await crypto.subtle.digest('SHA-256', buffer)
-  const hashArray = Array.from(new Uint8Array(hashBuffer))
-  return hashArray.map(b => b.toString(16).padStart(2, '0')).join('')
+  // 使用文件大小 + 文件名 + 时间戳生成唯一标识
+  const timestamp = Date.now()
+  const uniqueStr = `${file.name}_${file.size}_${timestamp}`
+  
+  // 如果 crypto.subtle 可用，使用它
+  if (typeof crypto !== 'undefined' && crypto.subtle) {
+    try {
+      const buffer = await file.arrayBuffer()
+      const hashBuffer = await crypto.subtle.digest('SHA-256', buffer)
+      const hashArray = Array.from(new Uint8Array(hashBuffer))
+      return hashArray.map(b => b.toString(16).padStart(2, '0')).join('')
+    } catch (e) {
+      console.warn('crypto.subtle 不可用，使用简单哈希')
+    }
+  }
+  
+  // 回退方案：使用文件名和大小生成唯一标识
+  return `${file.name}_${file.size}_${timestamp}`
 }
 
 const CHUNK_SIZE = 2 * 1024 * 1024
@@ -349,7 +363,20 @@ onMounted(() => {
       uploadUrl: '/api/upload/video/chunk',
       uploadFormName: 'chunk',
       allowBase64: false,
-      uploader: customVideoUploader
+      uploader: customVideoUploader,
+      uploaderEvent: {
+        onSuccess: (file, response) => {
+          console.log('视频上传成功', response)
+        },
+        onFailed: (file, response) => {
+          console.error('视频上传失败', response)
+          ElMessage.error('视频上传失败')
+        },
+        onError: (file, error) => {
+          console.error('视频上传错误', error)
+          ElMessage.error('视频上传错误')
+        }
+      }
     }
   })
   
